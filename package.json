@@ -7,6 +7,9 @@
   "author": "Konstantin Shutkin",
   "bin": "index.js",
   "readme": "README.md",
+  "scripts": {
+    "ci:publish": "changeset publish"
+  },
   "engines": {
     "node": ">=20"
   },
@@ -20,7 +23,8 @@
     "terminal-columns": "1.4.1"
   },
   "devDependencies": {
-    "@types/node": "^20.x.x"
+    "@types/node": "^20.x.x",
+    "@changesets/cli": "2.27.7"
   },
   "keywords": [
     "npm",
