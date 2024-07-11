@@ -1,14 +1,15 @@
 {
   "type": "module",
   "version": "0.0.1",
-  "name": "pkgsize",
+  "name": "pkgsz",
   "description": "Get the size of an npm package",
   "license": "MIT",
   "author": "Konstantin Shutkin",
   "bin": "index.js",
   "readme": "README.md",
   "scripts": {
-    "ci:publish": "changeset publish"
+    "ci:publish": "changeset publish",
+    "prepack": "pkgbld prune"
   },
   "engines": {
     "node": ">=20"

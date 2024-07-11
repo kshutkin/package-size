@@ -23,7 +23,7 @@ const cleanup = [];
 
 const { packageName, version } = await getCliArgs();
 
-const logger = createLogger('pkgsize');
+const logger = createLogger('pkgsz');
 
 logger(' ', 2 /*info*/);
 
@@ -130,7 +130,7 @@ function installPackage() {
 
 function createDirs() {
     return wrapWithLogger(async () => {
-        const dirName = await mkdtemp(join(tmpdir(), 'pkgsize-'));
+        const dirName = await mkdtemp(join(tmpdir(), 'pkgsz-'));
 
         cleanup.push(() => rm(dirName, { recursive: true, force: true }));
 
@@ -144,7 +144,7 @@ async function getCliArgs() {
     const version = await getMyVersion();
 
     const argv = cli({
-        name: 'psize',
+        name: 'pkgsz',
 
         version,
 
@@ -165,8 +165,8 @@ async function getCliArgs() {
             description: 'Measure the size of a package and its dependencies.',
 
             examples: [
-                'npx psize lodash',
-                'npx psize lodash 4.17.21'
+                'npx pkgsz lodash',
+                'npx pkgsz lodash 4.17.21'
             ],
         }
     });
