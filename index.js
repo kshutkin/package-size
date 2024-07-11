@@ -53,6 +53,7 @@ logger.finish(`Package: ${kleur.green(packageName)}@${kleur.blue(packageVersion)
 
 console.log();
 
+// @ts-ignore
 console.log(terminalColumns([
     ['Size minified', ...formatSize(size)],
     ['Gzipped size', ...formatSize(gzSize)],
@@ -186,7 +187,7 @@ async function getMyVersion() {
 
 /**
 * @param {string} dir
-* @returns {object | undefined}
+* @returns {Promise<object | undefined>}
 */
 async function readPackage(dir) {
     const packageFileName = resolve(dir, 'package.json');
@@ -272,7 +273,7 @@ async function exit(code) {
 async function wrapWithLogger(fn, message, fatal = true) {
     try {
         logger.start(message + '...');
-        return await fn(logger);
+        return await fn();
     } catch (error) {
         if (fatal) {
             logger.finish(message + '(failed)', 3 /*error*/, error);
