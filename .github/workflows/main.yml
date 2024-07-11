@@ -1,0 +1,85 @@
+on:
+  push:
+    branches: 
+      - main
+      - '[0-9]+.[0-9]+.x'
+      - '[0-9]+.x.x'
+      - '[0-9]+.x'
+      - next
+      - next-major
+      - alpha
+      - beta
+  pull_request:
+    branches:
+      - main
+      - '[0-9]+.[0-9]+.x'
+      - '[0-9]+.x.x'
+      - '[0-9]+.x'
+      - next
+      - next-major
+      - alpha
+      - beta
+
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }} 
+  cancel-in-progress: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 21.x]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
+      - run: corepack enable pnpm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile --prefer-offline --reporter=append-only
+      - run: pnpm run lint
+      - run: pnpm run build
+      - run: pnpm run test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.node-version }}
+          path: |
+            */dist
+
+  publish:
+
+    if: github.ref_name == 'main'
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: corepack enable pnpm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-20.x
+          path: .
+      - run: pnpm install --frozen-lockfile --prefer-offline --reporter=append-only
+      - uses: changesets/action@v1
+        with:
+          commit: "chore: update versions"
+          title: "chore: release"
+          publish: "pnpm run ci:publish"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
