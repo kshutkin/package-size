@@ -1,4 +1,4 @@
-# Package Size (pkgsize)
+# Package Size (pkgsz)
 
 # TODO
 
@@ -13,15 +13,14 @@ Features:
 - [-] add version support
 - [ ] add registry support
 - [x] display errors from pkgbld
-- [ ] display collected info even if there are errors
+- [x] display collected info even if there are errors
 - [ ] subpath exports support
 - [x] nice spinner
 - [ ] dedup files option
 - [ ] time taken
 
 Refactor:
-- [x] unify directory scanning
-- [x] use queues for parallel processing
+- [ ] optimize size calculation
 
 Docs:
 - [ ] documentation
