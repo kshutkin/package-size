@@ -1,25 +1,41 @@
 #!/usr/bin/env node
-import { mkdtemp, readFile, writeFile, mkdir, readdir, stat, rm } from 'fs/promises';
-import { join, resolve, dirname } from 'path';
-import { tmpdir } from 'os';
-import { fileURLToPath } from 'url';
-import { cli } from 'cleye';
+// system imports
 import { exec } from 'node:child_process';
-import { promisify } from 'util';
-import { gzip, constants } from 'zlib';
-import kleur from 'kleur';
-import terminalColumns from 'terminal-columns';
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+import { constants, gzip } from 'node:zlib';
+// 3rd party imports
 import '@niceties/draftlog-appender';
 import { createLogger } from '@niceties/logger';
+import { cli } from 'cleye';
+import kleur from 'kleur';
+import terminalColumns from 'terminal-columns';
 
-const startTime = Date.now();
-
+// promisified functions
 const execAsync = promisify(exec);
 const gzipAsync = promisify(gzip);
 
+// types
+/**
+ * @typedef {Object} Result
+ * @property {string} caption
+ * @property {string} sizeShort
+ * @property {string} sizeBytes
+ */
+
+// globals
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const startTime = Date.now();
+/**
+ * @type {Set.<Result>}
+ */
+const results = new Set;
 const cleanup = [];
+const deferred = [];
 
 const { packageName, version } = await getCliArgs();
 
@@ -31,7 +47,7 @@ const dirName = await createDirs();
 
 await installPackage();
 
-const filesInNMPromise = filesInDir(join(dirName, 'node_modules'));
+calculateNodeModulesSize();
 
 const { exports, version: packageVersion } = await resolvePackageJson();
 
@@ -41,56 +57,69 @@ if (version && version !== packageVersion) {
 
 await buildPackage(exports);
 
-const [pathsInDist, pathsInNm] = await Promise.all([filesInDir(join(dirName, 'dist')), filesInNMPromise]);
-
-const [size, gzSize, installSize] = await Promise.all([
-    dirSize(pathsInDist),
-    dirGzSize(pathsInDist),
-    dirSize(pathsInNm),
-]);
+await calculateDistSize();
 
 logger.finish(`Package: ${kleur.green(packageName)}@${kleur.blue(packageVersion)}`);
 
-console.log();
-
-// @ts-ignore
-console.log(terminalColumns([
-    ['Size minified', ...formatSize(size)],
-    ['Gzipped size', ...formatSize(gzSize)],
-    ['Install size', ...formatSize(installSize)],
-    ['Number of files', String(pathsInNm.length), '']
-], [
-    {
-        width: 'content-width',
-        paddingRight: 4
-    },
-    {
-        width: 'content-width',
-        paddingRight: 4
-    },
-    {
-        width: 'content-width'
-    }
-]));
-
-exit(0);
+exitAndReport(0);
 
 // high level functions
+
+function printResults() {
+    console.log();
+
+    // @ts-ignore
+    console.log(terminalColumns([...results].map(result => [result.caption, result.sizeShort, result.sizeBytes]), [
+        {
+            width: 'content-width',
+            paddingRight: 4
+        },
+        {
+            width: 'content-width',
+            paddingRight: 4
+        },
+        {
+            width: 'content-width'
+        }
+    ]));
+}
+
+function calculateDistSize() {
+    return wrapWithLogger(async () => {
+        const files = await filesInDir(join(dirName, 'dist'));
+        const [size, gzSize] = await Promise.all([
+            dirSize(files),
+            dirGzSize(files),
+        ]);
+        const textSize = formatSize(size);
+        results.add({ caption: 'minified size', sizeShort: textSize[0], sizeBytes: textSize[1] });
+        const textGzSize = formatSize(gzSize);
+        results.add({ caption: 'gzipped size', sizeShort: textGzSize[0], sizeBytes: textGzSize[1] });
+    }, 'Calculating sizes / finalizing');
+}
 
 async function buildPackage(exports) {
     return wrapWithLogger(async () => {
         if (exports.length) {
             logger(`Found subpath exports: ${kleur.green(exports.join(', '))}`, 2 /*info*/);
             logger(' ', 2 /*info*/);
-            logger(kleur.yellow('Note: Building default export'), 2 /*info*/);
+            logger(kleur.yellow('Note: Building default package export'), 2 /*info*/);
             logger(' ', 2 /*info*/);
         }
 
-        const indexFile = `export * as _ from '${packageName}';`;
+        const indexFile = `export * from '${packageName}';`;
 
         await writeFile(join(dirName, 'src', 'index.js'), indexFile);
 
-        await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName });
+        const result = await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName }, true);
+
+        if (result.includes('Generated an empty chunk: "index".')) {
+            const indexFile = `export * as _ from '${packageName}';`;
+
+            await writeFile(join(dirName, 'src', 'index.js'), indexFile);
+
+            await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName });
+        }
     }, 'Building package');
 }
 
@@ -112,6 +141,16 @@ async function resolvePackageJson() {
     } catch (e) {
         return { exports: [], version: '' };
     }
+}
+
+function calculateNodeModulesSize() {
+    deferred.push((async () => {
+        const files = await filesInDir(join(dirName, 'node_modules'));
+        const size = await dirSize(files);
+        const text = formatSize(size);
+        results.add({ caption: 'node_modules size', sizeShort: text[0], sizeBytes: text[1] });
+        results.add({ caption: 'node_modules files', sizeShort: String(files.length), sizeBytes: '' });
+    })());
 }
 
 function installPackage() {
@@ -177,10 +216,23 @@ async function getCliArgs() {
     };
 }
 
+/**
+ * @returns {Promise<string>}
+ */
 async function getMyVersion() {
     const pkg = await readPackage(resolve(__dirname));
 
     return pkg.version ?? '<unknown>';
+}
+
+/**
+ * @param {number} code
+ */
+async function exitAndReport(code) {
+    await Promise.all(deferred);
+    printResults();
+    await Promise.all(cleanup.map(fn => fn()));
+    process.exit(code);
 }
 
 // low level functions
@@ -238,30 +290,26 @@ function formatSize(size) {
     }
 
     if (size < 1024 * 1024) {
-        return [`${kleur.cyan((size / 1024).toFixed(2))} kilobyte`, `(${size} bytes)`];
+        return [`${kleur.cyan((size / 1024).toFixed(2))} KiB`, `(${size} bytes)`];
     }
 
-    return [`${kleur.cyan((size / 1024 / 1024).toFixed(2))} megabyte`, `(${size} bytes)`];
+    return [`${kleur.cyan((size / 1024 / 1024).toFixed(2))} MiB`, `(${size} bytes)`];
 }
 
-async function execEx(command, options) {
+/**
+ * @param {string} command 
+ * @param {*} options 
+ */
+async function execEx(command, options, returnStderr = false) {
     try {
         const result = await execAsync(command, options);
         if (result.stderr) {
             logger(result.stderr, 0 /*verbose*/);
         }
-        return result.stdout.toString();
+        return result[returnStderr ? 'stderr' : 'stdout'].toString();
     } catch (e) {
         throw new Error(e.stderr);
     }
-}
-
-/**
- * @param {number} code
- */
-async function exit(code) {
-    await Promise.all(cleanup.map(fn => fn()));
-    process.exit(code);
 }
 
 /**
@@ -272,14 +320,15 @@ async function exit(code) {
  */
 async function wrapWithLogger(fn, message, fatal = true) {
     try {
-        logger.start(message + '...');
+        logger.start(`${message}...`);
         return await fn();
     } catch (error) {
+        const text = `${message} (failed)`;
         if (fatal) {
-            logger.finish(message + '(failed)', 3 /*error*/, error);
-            exit(1);
+            logger.finish(text, 3 /*error*/, error);
+            await exitAndReport(1);
         } else {
-            logger(message + '(failed)', 3 /*error*/, error);
+            logger(text, 3 /*error*/, error);
             throw error;
         }
     }
