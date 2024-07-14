@@ -298,7 +298,7 @@ function formatSize(size) {
 
 /**
  * @param {string} command 
- * @param {*} options 
+ * @param {import('node:child_process').ExecOptions} options 
  */
 async function execEx(command, options, returnStderr = false) {
     try {
