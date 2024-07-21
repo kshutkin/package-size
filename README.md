@@ -9,18 +9,18 @@ Infra:
 
 Features:
 - [x] report number of files installed
-- [ ] brotli support
-- [-] add version support
-- [ ] add registry support
+- [x] brotli support
+- [x] add version support
+- [x] add registry support
 - [x] display errors from pkgbld
 - [x] display collected info even if there are errors
-- [ ] subpath exports support
+- [x] subpath exports support
 - [x] nice spinner
-- [ ] dedup files option
-- [ ] time taken
+- [x] dedup files option
+- [x] do not clean option
 
 Refactor:
-- [ ] optimize size calculation
+- [x] optimize size calculation
 
 Docs:
 - [ ] documentation

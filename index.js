@@ -6,17 +6,19 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { constants, gzip } from 'node:zlib';
+import { constants, gzip, brotliCompress } from 'node:zlib';
 // 3rd party imports
 import '@niceties/draftlog-appender';
 import { createLogger } from '@niceties/logger';
 import { cli } from 'cleye';
 import kleur from 'kleur';
 import terminalColumns from 'terminal-columns';
+import { readPackageUp } from 'read-package-up';
 
 // promisified functions
 const execAsync = promisify(exec);
 const gzipAsync = promisify(gzip);
+const brotliAsync = promisify(brotliCompress);
 
 // types
 /**
@@ -26,10 +28,13 @@ const gzipAsync = promisify(gzip);
  * @property {string} sizeBytes
  */
 
+/**
+ * @typedef {('brotli' | 'gzip' | 'none')} CompressionMethod
+ */
+
 // globals
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const startTime = Date.now();
 /**
  * @type {Set.<Result>}
  */
@@ -37,7 +42,7 @@ const results = new Set;
 const cleanup = [];
 const deferred = [];
 
-const { packageName, version } = await getCliArgs();
+const { packageName, version, flags } = await getCliArgs();
 
 const logger = createLogger('pkgsz');
 
@@ -52,7 +57,7 @@ calculateNodeModulesSize();
 const { exports, version: packageVersion } = await resolvePackageJson();
 
 if (version && version !== packageVersion) {
-    logger(`The requested version of the package is ${version}, but the version specified in the installed package.json is ${packageVersion}`, 3 /*warn*/);
+    logger(`Installed version is ${packageVersion}`, 3 /*warn*/);
 }
 
 await buildPackage(exports);
@@ -87,49 +92,62 @@ function printResults() {
 function calculateDistSize() {
     return wrapWithLogger(async () => {
         const files = await filesInDir(join(dirName, 'dist'));
-        const [size, gzSize] = await Promise.all([
-            dirSize(files),
-            dirGzSize(files),
-        ]);
-        const textSize = formatSize(size);
-        results.add({ caption: 'minified size', sizeShort: textSize[0], sizeBytes: textSize[1] });
-        const textGzSize = formatSize(gzSize);
-        results.add({ caption: 'gzipped size', sizeShort: textGzSize[0], sizeBytes: textGzSize[1] });
+        const dirCompressedResults = await dirCompressedSize(files, /** @type {CompressionMethod[]} */(['none', flags.noGzip ? null : 'gzip', flags.brotli ? 'brotli' : null].filter(Boolean)));
+        {
+            const textSize = formatSize(dirCompressedResults.none);
+            results.add({ caption: 'minified size', sizeShort: textSize[0], sizeBytes: textSize[1] });
+        }
+        if (!flags.noGzip) {
+            const textGzSize = formatSize(dirCompressedResults.gzip);
+            results.add({ caption: 'gzipped size', sizeShort: textGzSize[0], sizeBytes: textGzSize[1] });
+        }
+        if (flags.brotli) {
+            const textBrotliSize = formatSize(dirCompressedResults.brotli);
+            results.add({ caption: 'brotli compressed size', sizeShort: textBrotliSize[0], sizeBytes: textBrotliSize[1] });
+        }
     }, 'Calculating sizes / finalizing');
 }
 
 async function buildPackage(exports) {
+    const imports = flags.import.map(importName => importName.startsWith('./') ? importName.substring(2) : (importName === '.' ? importName : undefined)).filter(Boolean);
     return wrapWithLogger(async () => {
         if (exports.length) {
             logger(`Found subpath exports: ${kleur.green(exports.join(', '))}`, 2 /*info*/);
             logger(' ', 2 /*info*/);
-            logger(kleur.yellow('Note: Building default package export'), 2 /*info*/);
+            logger(kleur.yellow(`Note: Building ${(imports.length === 1 && imports[0] === '.') ? 'default package export' : `subpath exports: ${imports.map(importName => kleur.green(`./${importName}`)).join(', ')}`}`), 2 /*info*/);
             logger(' ', 2 /*info*/);
         }
 
-        const indexFile = `export * from '${packageName}';`;
-
-        await writeFile(join(dirName, 'src', 'index.js'), indexFile);
+        await writeFile(join(dirName, 'src', 'index.js'), getCode(false));
 
         const result = await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName }, true);
 
         if (result.includes('Generated an empty chunk: "index".')) {
-            const indexFile = `export * as _ from '${packageName}';`;
-
-            await writeFile(join(dirName, 'src', 'index.js'), indexFile);
+            await writeFile(join(dirName, 'src', 'index.js'), getCode(true));
 
             await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName });
         }
     }, 'Building package');
+
+    /**
+     * @param {boolean} workaround 
+     */
+    function getCode(workaround) {
+        return imports.map(importName => `export *${workaround ? ' as _' : ''} from '${packageName}${importName === '.' ? '' : `/${importName}`}';`).join('\n');
+    }
 }
 
 async function resolvePackageJson() {
     try {
-        return wrapWithLogger(async () => {
-            const url = `console.log(import.meta.resolve(\\"${packageName}/package.json\\"));`;
+        return await wrapWithLogger(async () => {
+            const url = `console.log(import.meta.resolve(\\"${packageName}\\"));`;
             const fileUrl = await execEx(`node --input-type=module -e "${url}"`, { cwd: dirName });
             const path = fileURLToPath(fileUrl);
-            const pkg = JSON.parse((await readFile(path)).toString());
+            const packageUp = await readPackageUp({ cwd: path });
+            const pkg = packageUp.packageJson;
+            if (!packageUp.path.includes(packageName)) {
+                throw new Error(`Cannot find package.json for ${packageName}`);
+            }
             const exports = [];
             if ('exports' in pkg && typeof pkg.exports === 'object' && pkg.exports !== null) {
                 exports.push(...Object.keys(pkg.exports).filter(exp => exp.startsWith('.')));
@@ -139,7 +157,7 @@ async function resolvePackageJson() {
             return { exports, version };
         }, 'Resolving package.json', false);
     } catch (e) {
-        return { exports: [], version: '' };
+        return { exports: [], version: '<unknown>' };
     }
 }
 
@@ -164,7 +182,7 @@ function installPackage() {
     return wrapWithLogger(async () => {
         await writeFile(join(dirName, 'package.json'), JSON.stringify(pkg, null, 2));
 
-        await execEx('npm i', { cwd: dirName });
+        await execEx(`npm i --no-audit --no-fund --no-update-notifier --no-progress ${flags.enableScripts ? '' : '--ignore-scripts'} ${flags.dedup ? '--prefer-dedup' : ''} ${flags.registry ? (`--registry=${flags.registry}`) : ''}`, { cwd: dirName });
     }, 'Installing package');
 }
 
@@ -172,7 +190,11 @@ function createDirs() {
     return wrapWithLogger(async () => {
         const dirName = await mkdtemp(join(tmpdir(), 'pkgsz-'));
 
-        cleanup.push(() => rm(dirName, { recursive: true, force: true }));
+        if (!flags.noClean) {
+            cleanup.push(() => rm(dirName, { recursive: true, force: true }));
+        } else {
+            cleanup.push(() => { console.log('Cleanup disabled, directory is left at: ', dirName); });
+        }
 
         await mkdir(join(dirName, 'src'), { recursive: true });
 
@@ -198,6 +220,42 @@ async function getCliArgs() {
                 type: String,
                 alias: 'r',
                 description: 'The npm registry to use when installing the package'
+            },
+            import: {
+                type: [String],
+                alias: 'i',
+                description: 'Import a subpath from the package',
+                default: ['.']
+            },
+            noGzip: {
+                type: Boolean,
+                alias: 'g',
+                description: 'Do not calculate gzipped size',
+                default: false
+            },
+            brotli: {
+                type: Boolean,
+                alias: 'b',
+                description: 'Calculate brotli compressed size',
+                default: false
+            },
+            noClean: {
+                type: Boolean,
+                alias: 'c',
+                description: 'Do not clean the temporary directory',
+                default: false
+            },
+            dedup: {
+                type: Boolean,
+                alias: 'd',
+                description: 'Deduplicate files (using prefer-dedupe flag)',
+                default: false
+            },
+            enableScripts: {
+                type: Boolean,
+                alias: 's',
+                description: 'Enable scripts',
+                default: false
             }
         },
 
@@ -212,7 +270,8 @@ async function getCliArgs() {
     });
     return {
         version: argv._.version,
-        packageName: argv._.packageName
+        packageName: argv._.packageName,
+        flags: argv.flags
     };
 }
 
@@ -263,14 +322,35 @@ async function dirSize(paths) {
 
 /**
  * @param {string[]} paths
+ * @param {CompressionMethod[]} methods
  */
-async function dirGzSize(paths) {
-    return (await Promise.all(paths.map(async path => {
+async function dirCompressedSize(paths, methods) {
+    const methodsSet = new Set(methods);
+    if (methodsSet.has('none') && methodsSet.size === 1) {
+        return {
+            'none': await dirSize(paths)
+        };
+    }
+    /** @type {Partial<Record<CompressionMethod, number>>} */
+    const results = {};
+    for (const method of methodsSet) {
+        results[method] = 0;
+    }
+    await Promise.all(paths.map(async path => {
         const fileContent = await readFile(path);
-        const { length } = await gzipAsync(fileContent, { level: constants.Z_BEST_COMPRESSION });
-
-        return length;
-    }))).reduce((i, size) => i + size, 0);
+        if (methodsSet.has('none')) {
+            results.none += fileContent.length;
+        }
+        if (methodsSet.has('gzip')) {
+            const { length } = await gzipAsync(fileContent, { level: constants.Z_BEST_COMPRESSION });
+            results.gzip += length;
+        }
+        if (methodsSet.has('brotli')) {
+            const { length } = await brotliAsync(fileContent, { params: { [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY } });
+            results.brotli += length;
+        }
+    }));
+    return results;
 }
 
 /**
@@ -328,7 +408,7 @@ async function wrapWithLogger(fn, message, fatal = true) {
             logger.finish(text, 3 /*error*/, error);
             await exitAndReport(1);
         } else {
-            logger(text, 3 /*error*/, error);
+            console.error(text, error);
             throw error;
         }
     }
