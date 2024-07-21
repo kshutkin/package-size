@@ -1,5 +1,20 @@
 # Package Size (pkgsz)
 
+[![npm version](https://img.shields.io/npm/v/pkgsz.svg?style=flat-square)](https://www.npmjs.com/package/pkgsz)
+
+Get the size of an npm package.
+
+## Usage
+
+```bash
+npx pkgsz lodash
+```
+
+## Features
+
+
+
+
 # TODO
 
 Infra:
