@@ -120,12 +120,12 @@ async function buildPackage(exports) {
 
         await writeFile(join(dirName, 'src', 'index.js'), getCode(false));
 
-        const result = await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName }, true);
+        const result = await execEx('npx pkgbld --formats=es --compress=es --includeExternals', { cwd: dirName }, true);
 
         if (result.includes('Generated an empty chunk: "index".')) {
             await writeFile(join(dirName, 'src', 'index.js'), getCode(true));
 
-            await execEx(join(__dirname, 'node_modules/.bin/pkgbld --formats=es --compress=es --includeExternals'), { cwd: dirName });
+            await execEx('npx pkgbld --formats=es --compress=es --includeExternals', { cwd: dirName });
         }
     }, 'Building package');
 
@@ -145,7 +145,7 @@ async function resolvePackageJson() {
             const path = fileURLToPath(fileUrl);
             const packageUp = await readPackageUp({ cwd: path });
             const pkg = packageUp.packageJson;
-            if (!packageUp.path.includes(packageName)) {
+            if (!packageUp.path.replaceAll('\\', '/').includes(packageName)) {
                 throw new Error(`Cannot find package.json for ${packageName}`);
             }
             const exports = [];
