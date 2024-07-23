@@ -34,10 +34,6 @@ Calculate brotli compressed size
 
 Do not clean the temporary directory
 
-### -d, --dedup
-
-Deduplicate files (using prefer-dedupe flag)
-
 ### -g, --no-gzip
 
 Do not calculate gzipped size
