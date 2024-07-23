@@ -182,7 +182,7 @@ function installPackage() {
     return wrapWithLogger(async () => {
         await writeFile(join(dirName, 'package.json'), JSON.stringify(pkg, null, 2));
 
-        await execEx(`npm i --no-audit --no-fund --no-update-notifier --no-progress ${flags.enableScripts ? '' : '--ignore-scripts'} ${flags.dedup ? '--prefer-dedup' : ''} ${flags.registry ? (`--registry=${flags.registry}`) : ''}`, { cwd: dirName });
+        await execEx(`npm i --no-audit --no-fund --no-update-notifier --no-progress ${flags.enableScripts ? '' : '--ignore-scripts'} ${flags.registry ? (`--registry=${flags.registry}`) : ''}`, { cwd: dirName });
     }, 'Installing package');
 }
 
@@ -243,12 +243,6 @@ async function getCliArgs() {
                 type: Boolean,
                 alias: 'c',
                 description: 'Do not clean the temporary directory',
-                default: false
-            },
-            dedup: {
-                type: Boolean,
-                alias: 'd',
-                description: 'Deduplicate files (using prefer-dedupe flag)',
                 default: false
             },
             enableScripts: {
