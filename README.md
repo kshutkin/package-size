@@ -10,13 +10,13 @@ Get the size of an npm package.
 npx pkgsz [flags] <package name> [version]
 ```
 
-## Features
+## :bulb: Features
 
-- Uses rollup to build the package
+- Uses rollup to build the package (probably more accurate results in modern vite world)
 - Reports the statistics regarding node_modules size and minified / gzipped size (brotli compression is optional)
 - Supports subpath exports
-- Able to include json files
-- Supports custom registries
+- Supports custom registries (without authentication)
+- Interactive mode
 
 ## Limitations
 
@@ -25,6 +25,10 @@ npx pkgsz [flags] <package name> [version]
 - Installs using `npm install` and not `yarn` / `pnpm` / `bun` etc.
 
 ## Options
+
+### -i, --interactive
+
+Interactive mode (default: false)
 
 ### -b, --brotli
 
@@ -38,9 +42,9 @@ Do not clean the temporary directory
 
 Do not calculate gzipped size
 
-### -i, --import
+### -e, --export
 
-Import a subpath from the package (default: ["."])
+Reexport given subpath from the package (default: ["."])
 
 ### -r, --registry
 

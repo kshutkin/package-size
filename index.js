@@ -8,12 +8,12 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { constants, gzip, brotliCompress } from 'node:zlib';
 // 3rd party imports
-import '@niceties/draftlog-appender';
-import { createLogger } from '@niceties/logger';
+import ora from 'ora';
 import { cli } from 'cleye';
 import kleur from 'kleur';
 import terminalColumns from 'terminal-columns';
 import { readPackageUp } from 'read-package-up';
+import prompt from 'prompts';
 
 // promisified functions
 const execAsync = promisify(exec);
@@ -44,9 +44,9 @@ const deferred = [];
 
 const { packageName, version, flags } = await getCliArgs();
 
-const logger = createLogger('pkgsz');
+const logger = ora();
 
-logger(' ', 2 /*info*/);
+console.log();
 
 const dirName = await createDirs();
 
@@ -54,21 +54,56 @@ await installPackage();
 
 calculateNodeModulesSize();
 
-const { exports, version: packageVersion } = await resolvePackageJson();
+const { exports, version: packageVersion, deps } = await resolvePackageJson();
 
 if (version && version !== packageVersion) {
-    logger(`Installed version is ${packageVersion}`, 3 /*warn*/);
+    console.warn(`Installed version is ${packageVersion}`);
 }
 
-await buildPackage(exports);
+if (flags.interactive) {
+    const { selectedExports, selectedDependencies } = await interactiveMode(deps, exports);
+    selectedDependencies.push(packageName);
+    await buildPackage(exports, selectedExports, selectedDependencies);
+} else {
+    await buildPackage(exports, flags.export);
+}
 
 await calculateDistSize();
 
-logger.finish(`Package: ${kleur.green(packageName)}@${kleur.blue(packageVersion)}`);
+logger.succeed(`Package: ${kleur.green(packageName)}@${kleur.blue(packageVersion)}`);
 
 exitAndReport(0);
 
 // high level functions
+
+async function interactiveMode(deps, exports) {
+    const loggerText = logger.text;
+    logger.stop();
+
+    const { exports: selectedExports } = await prompt([
+        {
+            type: 'multiselect',
+            name: 'exports',
+            message: 'Which subpaths do you want to reexport?',
+            choices: exports.map(exportName => ({ title: exportName, value: exportName }))
+        }
+    ]);
+
+    const { dependencies: selectedDependencies } = await prompt([
+        {
+            type: 'multiselect',
+            name: 'dependencies',
+            message: 'Which dependencies do you want to include?',
+            choices: deps.map(dependency => ({ title: dependency, value: dependency }))
+        }
+    ]);
+
+    console.log(selectedExports, selectedDependencies);
+
+    logger.start(loggerText);
+
+    return { selectedExports, selectedDependencies };
+}
 
 function printResults() {
     console.log();
@@ -108,24 +143,31 @@ function calculateDistSize() {
     }, 'Calculating sizes / finalizing');
 }
 
-async function buildPackage(exports) {
-    const imports = flags.import.map(importName => importName.startsWith('./') ? importName.substring(2) : (importName === '.' ? importName : undefined)).filter(Boolean);
+/**
+ * @param {string[]} pkgExports
+ * @param {string[]} includeExports
+ * @param {string[]} dependencies
+ */
+async function buildPackage(pkgExports, includeExports, dependencies = undefined) {
+    const exports = includeExports.map(exportName => exportName.startsWith('./') ? exportName.substring(2) : (exportName === '.' ? exportName : undefined)).filter(Boolean);
     return wrapWithLogger(async () => {
-        if (exports.length) {
-            logger(`Found subpath exports: ${kleur.green(exports.join(', '))}`, 2 /*info*/);
-            logger(' ', 2 /*info*/);
-            logger(kleur.yellow(`Note: Building ${(imports.length === 1 && imports[0] === '.') ? 'default package export' : `subpath exports: ${imports.map(importName => kleur.green(`./${importName}`)).join(', ')}`}`), 2 /*info*/);
-            logger(' ', 2 /*info*/);
+        if (pkgExports.length) {
+            console.log(`Found subpath exports: ${kleur.green(pkgExports.join(', '))}`);
+            console.log();
+            console.log(kleur.yellow(`Note: Building ${(exports.length === 1 && exports[0] === '.') ? 'default package export' : `subpath exports: ${exports.map(exportName => kleur.green(`./${exportName}`)).join(', ')}`}`));
+            console.log();
         }
 
         await writeFile(join(dirName, 'src', 'index.js'), getCode(false));
 
-        const result = await execEx('npx pkgbld --formats=es --compress=es --includeExternals', { cwd: dirName }, true);
+        const command = getCliString();
+
+        const result = await execEx(command, { cwd: dirName }, true);
 
         if (result.includes('Generated an empty chunk: "index".')) {
             await writeFile(join(dirName, 'src', 'index.js'), getCode(true));
 
-            await execEx('npx pkgbld --formats=es --compress=es --includeExternals', { cwd: dirName });
+            await execEx(command, { cwd: dirName });
         }
     }, 'Building package');
 
@@ -133,7 +175,11 @@ async function buildPackage(exports) {
      * @param {boolean} workaround 
      */
     function getCode(workaround) {
-        return imports.map(importName => `export *${workaround ? ' as _' : ''} from '${packageName}${importName === '.' ? '' : `/${importName}`}';`).join('\n');
+        return exports.map(exportName => `export *${workaround ? ' as _' : ''} from '${packageName}${exportName === '.' ? '' : `/${exportName}`}';`).join('\n');
+    }
+
+    function getCliString() {
+        return `npx pkgbld --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
     }
 }
 
@@ -154,10 +200,13 @@ async function resolvePackageJson() {
             }
             /** @type {string} */
             const version = typeof pkg.version === 'string' ? pkg.version : String(pkg.version);
-            return { exports, version };
+            const dependencies = Object.keys(pkg.dependencies ?? {});
+            const peerDependencies = Object.keys(pkg.peerDependencies ?? {});
+            const deps = new Set([...dependencies, ...peerDependencies]);
+            return { exports, version, deps: [...deps] };
         }, 'Resolving package.json', false);
     } catch (e) {
-        return { exports: [], version: '<unknown>' };
+        return { exports: [], version: '<unknown>', deps: [] };
     }
 }
 
@@ -221,10 +270,10 @@ async function getCliArgs() {
                 alias: 'r',
                 description: 'The npm registry to use when installing the package'
             },
-            import: {
+            export: {
                 type: [String],
-                alias: 'i',
-                description: 'Import a subpath from the package',
+                alias: 'e',
+                description: 'Reexport given subpath from the package',
                 default: ['.']
             },
             noGzip: {
@@ -249,6 +298,12 @@ async function getCliArgs() {
                 type: Boolean,
                 alias: 's',
                 description: 'Enable scripts',
+                default: false
+            },
+            interactive: {
+                type: Boolean,
+                alias: 'i',
+                description: 'Interactive mode',
                 default: false
             }
         },
@@ -378,7 +433,7 @@ async function execEx(command, options, returnStderr = false) {
     try {
         const result = await execAsync(command, options);
         if (result.stderr) {
-            logger(result.stderr, 0 /*verbose*/);
+            console.debug(result.stderr);
         }
         return result[returnStderr ? 'stderr' : 'stdout'].toString();
     } catch (e) {
@@ -399,7 +454,7 @@ async function wrapWithLogger(fn, message, fatal = true) {
     } catch (error) {
         const text = `${message} (failed)`;
         if (fatal) {
-            logger.finish(text, 3 /*error*/, error);
+            logger.fail(`${text}\n${error.message}`);
             await exitAndReport(1);
         } else {
             console.error(text, error);
