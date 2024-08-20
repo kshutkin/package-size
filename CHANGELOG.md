@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.4.0
+
+### Minor Changes
+
+- d0c56f5: added sourcemap explorer
+
 ## 0.3.0
 
 ### Minor Changes
