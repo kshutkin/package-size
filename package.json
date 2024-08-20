@@ -16,18 +16,19 @@
     "node": ">=20"
   },
   "dependencies": {
-    "ora": "8.0.1",
-    "pkgbld": "^1.32.1",
-    "prompts": "2.4.2",
     "cleye": "1.3.2",
     "kleur": "4.1.5",
-    "terminal-columns": "1.4.1",
-    "read-package-up": "11.0.0"
+    "ora": "8.0.1",
+    "pkgbld": "^1.32.2",
+    "prompts": "2.4.2",
+    "read-package-up": "11.0.0",
+    "source-map-explorer": "2.5.3",
+    "terminal-columns": "1.4.1"
   },
   "devDependencies": {
-    "@types/node": "^20.x.x",
+    "@biomejs/biome": "1.8.3",
     "@changesets/cli": "2.27.7",
-    "@biomejs/biome": "1.8.3"
+    "@types/node": "^20.14.15"
   },
   "keywords": [
     "npm",

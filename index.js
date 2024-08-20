@@ -39,6 +39,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * @type {Set.<Result>}
  */
 const results = new Set;
+const compositionMap = new Map;
 const cleanup = [];
 const deferred = [];
 
@@ -67,6 +68,10 @@ if (flags.interactive) {
 } else {
     await buildPackage(exports, flags.export);
 }
+
+await exploreSourcemaps();
+
+await prunePackage();
 
 await calculateDistSize();
 
@@ -106,10 +111,8 @@ async function interactiveMode(deps, exports) {
 }
 
 function printResults() {
-    console.log();
 
-    // @ts-ignore
-    console.log(terminalColumns([...results].map(result => [result.caption, result.sizeShort, result.sizeBytes]), [
+    const options = [
         {
             width: 'content-width',
             paddingRight: 4
@@ -121,7 +124,33 @@ function printResults() {
         {
             width: 'content-width'
         }
-    ]));
+    ];
+
+    console.log();
+
+    // @ts-ignore
+    console.log(terminalColumns([...results].map(result => [result.caption, result.sizeShort, result.sizeBytes]), options));
+
+    if (compositionMap.size) {
+        console.log();
+        console.log(kleur.underline('Composition:'));
+        console.log();
+        const tableData = [];
+        const data = [...compositionMap.entries()];
+        const firstRow = data.filter(row => row[0] === packageName);
+        const rest = data.filter(row => row[0] !== packageName);
+        const compositionMapSorted = rest.sort((a, b) => b[1] - a[1]);
+        if (firstRow.length) {
+            const sizes = formatSize(firstRow[0][1]);
+            tableData.push([kleur.green(firstRow[0][0]) + kleur.gray(' (self)'), sizes[0], sizes[1]]);
+        }
+        for (const [pkgName, size] of compositionMapSorted) {
+            const sizes = formatSize(size);
+            tableData.push([kleur.green(pkgName), sizes[0], sizes[1]]);
+        }
+        // @ts-ignore
+        console.log(terminalColumns(tableData, options));
+    }
 }
 
 function calculateDistSize() {
@@ -141,6 +170,42 @@ function calculateDistSize() {
             results.add({ caption: 'brotli compressed size', sizeShort: textBrotliSize[0], sizeBytes: textBrotliSize[1] });
         }
     }, 'Calculating sizes / finalizing');
+}
+
+async function exploreSourcemaps() {
+    return wrapWithLogger(async () => {
+        const result = await execEx('npx source-map-explorer dist/index.mjs --json', { cwd: dirName });
+        const json = JSON.parse(result);
+        if ('results' in json && Array.isArray(json.results)) {
+            for (const results of json.results) {
+                for (const [key, result] of Object.entries(results.files)) {
+                    const nodeModulesPrefix = '../node_modules/';
+                    let pkgName = key;
+                    if (key.startsWith(nodeModulesPrefix)) {
+                        const mapped = key.substring(nodeModulesPrefix.length);
+                        const parts = mapped.split('/');
+                        pkgName = parts[0];
+                        if (parts[0].startsWith('@') && parts.length > 1) {
+                            pkgName += `/${parts[1]}`;
+                        }                    
+                    } else if (key === '[sourceMappingURL]') {
+                        continue;
+                    }
+                    if (!compositionMap.has(pkgName)) {
+                        compositionMap.set(pkgName, result.size);
+                    } else {
+                        compositionMap.set(pkgName, compositionMap.get(pkgName) + result.size);
+                    }
+                }
+            }
+        }
+    }, 'Exploring sourcemaps');
+}
+
+async function prunePackage() {
+    return wrapWithLogger(async () => {
+        await execEx('npx pkgbld prune --removeSourcemaps', { cwd: dirName });
+    }, 'Pruning package');
 }
 
 /**
@@ -179,7 +244,7 @@ async function buildPackage(pkgExports, includeExports, dependencies = undefined
     }
 
     function getCliString() {
-        return `npx pkgbld --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
+        return `npx pkgbld --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
     }
 }
 
