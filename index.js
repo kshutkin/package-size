@@ -40,7 +40,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 const results = new Set;
 const compositionMap = new Map;
+/**
+ * @type {(() => Promise<void> | void)[]}
+ */
 const cleanup = [];
+/**
+ * @type {Promise<void>[]}
+ */
 const deferred = [];
 
 const { packageName, version, flags } = await getCliArgs();
@@ -64,9 +70,12 @@ if (version && version !== packageVersion) {
 if (flags.interactive) {
     const { selectedExports, selectedDependencies } = await interactiveMode(deps, exports);
     selectedDependencies.push(packageName);
-    await buildPackage(exports, selectedExports, selectedDependencies);
+    const exportsData = await getExportsData(selectedExports);
+    await buildPackage(exports, exportsData, selectedDependencies);
 } else {
-    await buildPackage(exports, flags.export);
+    const exportsData = await getExportsData(flags.export);
+
+    await buildPackage(exports, exportsData);
 }
 
 await exploreSourcemaps();
@@ -81,6 +90,11 @@ exitAndReport(0);
 
 // high level functions
 
+/**
+ * @param {string[]} deps
+ * @param {string[]} exports
+ * @returns {Promise<{ selectedExports: string[], selectedDependencies: string[] }>}
+ */
 async function interactiveMode(deps, exports) {
     const loggerText = logger.text;
     logger.stop();
@@ -158,16 +172,16 @@ function calculateDistSize() {
         const files = await filesInDir(join(dirName, 'dist'));
         const dirCompressedResults = await dirCompressedSize(files, /** @type {CompressionMethod[]} */(['none', flags.noGzip ? null : 'gzip', flags.brotli ? 'brotli' : null].filter(Boolean)));
         {
-            const textSize = formatSize(dirCompressedResults.none);
-            results.add({ caption: 'minified size', sizeShort: textSize[0], sizeBytes: textSize[1] });
+            const textSize = formatSize(/** @type {number} */(dirCompressedResults.none));
+            results.add({ caption: 'minified', sizeShort: textSize[0], sizeBytes: textSize[1] });
         }
         if (!flags.noGzip) {
-            const textGzSize = formatSize(dirCompressedResults.gzip);
-            results.add({ caption: 'gzipped size', sizeShort: textGzSize[0], sizeBytes: textGzSize[1] });
+            const textGzSize = formatSize( /** @type {number} */(dirCompressedResults.gzip));
+            results.add({ caption: 'minified + gzip', sizeShort: textGzSize[0], sizeBytes: textGzSize[1] });
         }
         if (flags.brotli) {
-            const textBrotliSize = formatSize(dirCompressedResults.brotli);
-            results.add({ caption: 'brotli compressed size', sizeShort: textBrotliSize[0], sizeBytes: textBrotliSize[1] });
+            const textBrotliSize = formatSize(/** @type {number} */(dirCompressedResults.brotli));
+            results.add({ caption: 'minified + brotli', sizeShort: textBrotliSize[0], sizeBytes: textBrotliSize[1] });
         }
     }, 'Calculating sizes / finalizing');
 }
@@ -179,6 +193,9 @@ async function exploreSourcemaps() {
         if ('results' in json && Array.isArray(json.results)) {
             for (const results of json.results) {
                 for (const [key, result] of Object.entries(results.files)) {
+                    if (result.size === 0) {
+                        continue;
+                    }
                     const nodeModulesPrefix = '../node_modules/';
                     let pkgName = key;
                     if (key.startsWith(nodeModulesPrefix)) {
@@ -210,37 +227,39 @@ async function prunePackage() {
 
 /**
  * @param {string[]} pkgExports
- * @param {string[]} includeExports
- * @param {string[]} dependencies
+ * @param {{ exportName: string, hasDefaultExport: boolean }[]} includeExports
+ * @param {string[] | undefined} dependencies
  */
 async function buildPackage(pkgExports, includeExports, dependencies = undefined) {
-    const exports = includeExports.map(exportName => exportName.startsWith('./') ? exportName.substring(2) : (exportName === '.' ? exportName : undefined)).filter(Boolean);
     return wrapWithLogger(async () => {
         if (pkgExports.length) {
             console.log(`Found subpath exports: ${kleur.green(pkgExports.join(', '))}`);
             console.log();
-            console.log(kleur.yellow(`Note: Building ${(exports.length === 1 && exports[0] === '.') ? 'default package export' : `subpath exports: ${exports.map(exportName => kleur.green(`./${exportName}`)).join(', ')}`}`));
+            console.log(kleur.yellow(`Note: Building ${(includeExports.length === 1 && includeExports[0].exportName === packageName) ? 'root package export' : `subpath exports: ${includeExports.map(data => kleur.green(`./${data.exportName}`)).join(', ')}`}`));
             console.log();
         }
 
-        await writeFile(join(dirName, 'src', 'index.js'), getCode(false));
+        await writeFile(join(dirName, 'src', 'index.js'), getCode());
 
         const command = getCliString();
 
-        const result = await execEx(command, { cwd: dirName }, true);
-
-        if (result.includes('Generated an empty chunk: "index".')) {
-            await writeFile(join(dirName, 'src', 'index.js'), getCode(true));
-
-            await execEx(command, { cwd: dirName });
-        }
+        await execEx(command, { cwd: dirName }, true);
     }, 'Building package');
 
-    /**
-     * @param {boolean} workaround 
-     */
-    function getCode(workaround) {
-        return exports.map(exportName => `export *${workaround ? ' as _' : ''} from '${packageName}${exportName === '.' ? '' : `/${exportName}`}';`).join('\n');
+    function getCode() {
+        const multipleFiles = includeExports.filter(data => data.hasDefaultExport).length > 1;
+        if (multipleFiles) {
+            throw new Error('Multiple default exports are not supported yet');
+        }
+        return includeExports.map(exportData => {
+            const { exportName, hasDefaultExport } = exportData;
+            const result = [];
+            if (hasDefaultExport) {
+                result.push(`export { default } from '${exportName}';`);
+            }
+            result.push(`export * from '${exportName}';`);
+            return result.join('\n');
+        }).join('\n');
     }
 
     function getCliString() {
@@ -248,6 +267,43 @@ async function buildPackage(pkgExports, includeExports, dependencies = undefined
     }
 }
 
+/**
+ * @param {string[]} exports
+ * @returns {Promise<{ exportName: string, hasDefaultExport: boolean }[]>}
+ */
+async function getExportsData(exports) {
+    return wrapWithLogger(async () => {
+        const packageExports = exports
+            .map(exportName => exportName.startsWith('./') ? exportName.substring(2) : (exportName === '.' ? exportName : undefined))
+            .filter(Boolean)
+            .map(exportName => `${packageName}${exportName === '.' ? '' : `/${exportName}`}`);
+
+        return await Promise.all(packageExports.map(async packageExport => ({
+            exportName: packageExport,
+            hasDefaultExport: await hasDefaultExport(packageExport)
+        })));
+
+    }, 'Resolving exports');
+}
+
+/**
+ * @param {string} importName
+ * @returns {Promise<boolean>}
+ */
+async function hasDefaultExport(importName) {
+    return wrapWithLogger(async () => {
+        try {
+            await execEx(`node --input-type=module -e "import pkg from '${importName}';"`, { cwd: dirName });
+            return true;
+        } catch (e) {
+            return false;
+        }        
+    }, 'Checking for default export');
+}
+
+/**
+ * @returns {Promise<{ exports: string[], version: string, deps: string[] }>}
+ */
 async function resolvePackageJson() {
     try {
         return await wrapWithLogger(async () => {
@@ -255,18 +311,18 @@ async function resolvePackageJson() {
             const fileUrl = await execEx(`node --input-type=module -e "${url}"`, { cwd: dirName });
             const path = fileURLToPath(fileUrl);
             const packageUp = await readPackageUp({ cwd: path });
-            const pkg = packageUp.packageJson;
-            if (!packageUp.path.replaceAll('\\', '/').includes(packageName)) {
+            const pkg = packageUp?.packageJson;
+            if (!packageUp?.path.replaceAll('\\', '/').includes(packageName)) {
                 throw new Error(`Cannot find package.json for ${packageName}`);
             }
             const exports = [];
-            if ('exports' in pkg && typeof pkg.exports === 'object' && pkg.exports !== null) {
+            if (pkg && 'exports' in pkg && typeof pkg.exports === 'object' && pkg.exports !== null) {
                 exports.push(...Object.keys(pkg.exports).filter(exp => exp.startsWith('.')));
             }
             /** @type {string} */
-            const version = typeof pkg.version === 'string' ? pkg.version : String(pkg.version);
-            const dependencies = Object.keys(pkg.dependencies ?? {});
-            const peerDependencies = Object.keys(pkg.peerDependencies ?? {});
+            const version = typeof pkg?.version === 'string' ? pkg.version : String(pkg?.version);
+            const dependencies = Object.keys(pkg?.dependencies ?? {});
+            const peerDependencies = Object.keys(pkg?.peerDependencies ?? {});
             const deps = new Set([...dependencies, ...peerDependencies]);
             return { exports, version, deps: [...deps] };
         }, 'Resolving package.json', false);
@@ -280,7 +336,7 @@ function calculateNodeModulesSize() {
         const files = await filesInDir(join(dirName, 'node_modules'));
         const size = await dirSize(files);
         const text = formatSize(size);
-        results.add({ caption: 'node_modules size', sizeShort: text[0], sizeBytes: text[1] });
+        results.add({ caption: 'node_modules', sizeShort: text[0], sizeBytes: text[1] });
         results.add({ caption: 'node_modules files', sizeShort: String(files.length), sizeBytes: '' });
     })());
 }
@@ -395,11 +451,12 @@ async function getCliArgs() {
 async function getMyVersion() {
     const pkg = await readPackage(resolve(__dirname));
 
-    return pkg.version ?? '<unknown>';
+    return (pkg && 'version' in pkg && typeof pkg.version === 'string') ? pkg.version : '<unknown>';
 }
 
 /**
  * @param {number} code
+ * @returns {Promise<never>}
  */
 async function exitAndReport(code) {
     await Promise.all(deferred);
@@ -453,15 +510,18 @@ async function dirCompressedSize(paths, methods) {
     await Promise.all(paths.map(async path => {
         const fileContent = await readFile(path);
         if (methodsSet.has('none')) {
-            results.none += fileContent.length;
+            /** @type {number} */
+            (results.none) += fileContent.length;
         }
         if (methodsSet.has('gzip')) {
             const { length } = await gzipAsync(fileContent, { level: constants.Z_BEST_COMPRESSION });
-            results.gzip += length;
+            /** @type {number} */
+            (results.gzip) += length;
         }
         if (methodsSet.has('brotli')) {
             const { length } = await brotliAsync(fileContent, { params: { [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY } });
-            results.brotli += length;
+            /** @type {number} */
+            (results.brotli) += length;
         }
     }));
     return results;
@@ -501,7 +561,7 @@ async function execEx(command, options, returnStderr = false) {
             console.debug(result.stderr);
         }
         return result[returnStderr ? 'stderr' : 'stdout'].toString();
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
         throw new Error(e.stderr);
     }
 }
@@ -516,14 +576,13 @@ async function wrapWithLogger(fn, message, fatal = true) {
     try {
         logger.start(`${message}...`);
         return await fn();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
         const text = `${message} (failed)`;
         if (fatal) {
             logger.fail(`${text}\n${error.message}`);
-            await exitAndReport(1);
-        } else {
-            console.error(text, error);
-            throw error;
+            return await exitAndReport(1);
         }
+        console.error(text, error);
+        throw error;
     }
 }
