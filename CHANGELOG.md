@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.5.0
+
+### Minor Changes
+
+- 13c29cf: more accurate default export detection
+
 ## 0.4.0
 
 ### Minor Changes
