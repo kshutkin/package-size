@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.6.0
+
+### Minor Changes
+
+- 8ae3794: improve multiple subpath exports handling (wip)
+
 ## 0.5.0
 
 ### Minor Changes
