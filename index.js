@@ -3,7 +3,7 @@
 import { exec } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { constants, gzip, brotliCompress } from 'node:zlib';
@@ -51,11 +51,15 @@ const deferred = [];
 
 const { packageName, version, flags } = await getCliArgs();
 
+validateExports(flags.export);
+
 const logger = ora();
 
 console.log();
 
 const dirName = await createDirs();
+
+const packageJson = createPackageJson();
 
 await installPackage();
 
@@ -104,7 +108,7 @@ async function interactiveMode(deps, exports) {
             type: 'multiselect',
             name: 'exports',
             message: 'Which subpaths do you want to reexport?',
-            choices: exports.map(exportName => ({ title: exportName, value: exportName }))
+            choices: exports.map(exportName => ({ title: exportName, value: exportName, disabled: exportName.includes('*') }))
         }
     ]);
 
@@ -188,7 +192,7 @@ function calculateDistSize() {
 
 async function exploreSourcemaps() {
     return wrapWithLogger(async () => {
-        const result = await execEx('npx source-map-explorer dist/index.mjs --json', { cwd: dirName });
+        const result = await execEx('npx source-map-explorer dist/**/*.mjs --json', { cwd: dirName });
         const json = JSON.parse(result);
         if ('results' in json && Array.isArray(json.results)) {
             for (const results of json.results) {
@@ -227,40 +231,34 @@ async function prunePackage() {
 
 /**
  * @param {string[]} pkgExports
- * @param {{ exportName: string, hasDefaultExport: boolean }[]} includeExports
+ * @param {{ export: string, import: string, hasDefaultExport: boolean }[]} exportsData
  * @param {string[] | undefined} dependencies
  */
-async function buildPackage(pkgExports, includeExports, dependencies = undefined) {
+async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
     return wrapWithLogger(async () => {
         if (pkgExports.length) {
             console.log(`Found subpath exports: ${kleur.green(pkgExports.join(', '))}`);
             console.log();
-            console.log(kleur.yellow(`Note: Building ${(includeExports.length === 1 && includeExports[0].exportName === packageName) ? 'root package export' : `subpath exports: ${includeExports.map(data => kleur.green(`./${data.exportName}`)).join(', ')}`}`));
+            console.log(kleur.yellow(`Note: Building ${(exportsData.length === 1 && exportsData[0].import === packageName) ? 'root package export' : `subpath exports: ${exportsData.map(data => kleur.green(data.export)).join(', ')}`}`));
             console.log();
         }
 
-        await writeFile(join(dirName, 'src', 'index.js'), getCode());
+        await Promise.all(getCode(exportsData).map(data => mkdir(join(dirName, 'src', dirname(data.exportName === '.' ? 'index.js' : `${join(dirname(data.exportName), basename(data.exportName))}.mjs`)), { recursive: true })));
+
+        await Promise.all(getCode(exportsData)
+            .map(data => writeFile(join(dirName, 'src', data.exportName === '.' ? 'index.js' : `${join(dirname(data.exportName), basename(data.exportName))}.mjs`), data.code)));
+        
+        packageJson.exports = exportsData.map(data => data.export).reduce((acc, exportName) => {
+            acc[`./${exportName}`] = `./src/${exportName === '.' ? 'index.js' : join(dirname(exportName), basename(exportName))}.mjs`;
+            return acc;
+        }, /** @type {Record<string, string>} */({}));
+
+        await writeFile(join(dirName, 'package.json'), JSON.stringify(packageJson, null, 2));
 
         const command = getCliString();
 
         await execEx(command, { cwd: dirName }, true);
-    }, 'Building package');
-
-    function getCode() {
-        const multipleFiles = includeExports.filter(data => data.hasDefaultExport).length > 1;
-        if (multipleFiles) {
-            throw new Error('Multiple default exports are not supported yet');
-        }
-        return includeExports.map(exportData => {
-            const { exportName, hasDefaultExport } = exportData;
-            const result = [];
-            if (hasDefaultExport) {
-                result.push(`export { default } from '${exportName}';`);
-            }
-            result.push(`export * from '${exportName}';`);
-            return result.join('\n');
-        }).join('\n');
-    }
+    }, 'Building package');    
 
     function getCliString() {
         return `npx pkgbld --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
@@ -268,19 +266,34 @@ async function buildPackage(pkgExports, includeExports, dependencies = undefined
 }
 
 /**
+ * @param {{ export: string, import: string, hasDefaultExport: boolean }[]} exportsData
+ */
+function getCode(exportsData) {
+    return exportsData.map(exportData => {
+        const { export: exportName, import: importName, hasDefaultExport } = exportData;
+        const result = [];
+        if (hasDefaultExport) {
+            result.push(`export { default } from '${importName}';`);
+        }
+        result.push(`export * from '${importName}';`);
+        return { exportName, code: result.join('\n') };
+    });
+}
+
+/**
  * @param {string[]} exports
- * @returns {Promise<{ exportName: string, hasDefaultExport: boolean }[]>}
+ * @returns {Promise<{ export: string, import: string, hasDefaultExport: boolean }[]>}
  */
 async function getExportsData(exports) {
     return wrapWithLogger(async () => {
         const packageExports = exports
             .map(exportName => exportName.startsWith('./') ? exportName.substring(2) : (exportName === '.' ? exportName : undefined))
             .filter(Boolean)
-            .map(exportName => `${packageName}${exportName === '.' ? '' : `/${exportName}`}`);
+            .map(exportName => ({ import: `${packageName}${exportName === '.' ? '' : `/${exportName}`}`, export: /** @type {string} */(exportName) }));
 
         return await Promise.all(packageExports.map(async packageExport => ({
-            exportName: packageExport,
-            hasDefaultExport: await hasDefaultExport(packageExport)
+            ...packageExport,
+            hasDefaultExport: await hasDefaultExport(packageExport.import)
         })));
 
     }, 'Resolving exports');
@@ -341,16 +354,22 @@ function calculateNodeModulesSize() {
     })());
 }
 
-function installPackage() {
+/**
+ * @returns {Record<string, any>}
+ */
+function createPackageJson() {
     const pkg = {
-        main: 'dist/index.js',
         dependencies: {
             [packageName]: version ?? '*'
         }
     };
 
+    return pkg;
+}
+
+function installPackage() {
     return wrapWithLogger(async () => {
-        await writeFile(join(dirName, 'package.json'), JSON.stringify(pkg, null, 2));
+        await writeFile(join(dirName, 'package.json'), JSON.stringify(packageJson, null, 2));
 
         await execEx(`npm i --no-audit --no-fund --no-update-notifier --no-progress ${flags.enableScripts ? '' : '--ignore-scripts'} ${flags.registry ? (`--registry=${flags.registry}`) : ''}`, { cwd: dirName });
     }, 'Installing package');
@@ -443,6 +462,26 @@ async function getCliArgs() {
         packageName: argv._.packageName,
         flags: argv.flags
     };
+}
+
+/** @param {string[]} exports */
+function validateExports(exports) {
+    /**@type {string[]} */
+    const exportsErrors = [];
+
+    for (const exportName of exports) {
+        if (exportName.includes('*')) {
+            exportsErrors.push(`Wildcards are not supported: ${exportName}`);
+        }
+        if (!exportName.startsWith('.')) {
+            exportsErrors.push(`Exports must start with a dot: ${exportName}`);
+        }
+    }
+
+    if (exportsErrors.length) {
+        console.error(exportsErrors.join('\n'));
+        process.exit(1);
+    }
 }
 
 /**
