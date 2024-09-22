@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.8.0
+
+### Minor Changes
+
+- 7057684: get all dependencies and not olny top level one
+
 ## 0.7.0
 
 ### Minor Changes
