@@ -40,6 +40,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 const results = new Set;
 const compositionMap = new Map;
+
+/**
+ * @type {{ export: string, import: string, hasDefaultExport: boolean }[]}
+ */
+const exportsData = [];
+
 /**
  * @type {(() => Promise<void> | void)[]}
  */
@@ -121,8 +127,6 @@ async function interactiveMode(deps, exports) {
         }
     ]);
 
-    console.log(selectedExports, selectedDependencies);
-
     logger.start(loggerText);
 
     return { selectedExports, selectedDependencies };
@@ -148,6 +152,14 @@ function printResults() {
 
     // @ts-ignore
     console.log(terminalColumns([...results].map(result => [result.caption, result.sizeShort, result.sizeBytes]), options));
+
+    if (exportsData.length) {
+        console.log();
+        console.log(kleur.underline('Exports:'));
+        console.log();
+        // @ts-ignore
+        console.log(terminalColumns(exportsData.map(data => [data.export, data.hasDefaultExport ? kleur.green('default export') : kleur.blue('no default export')]), [{ width: 'content-width', paddingRight: 4 }, { width: 'content-width', paddingRight: 4 }]));
+    }
 
     if (compositionMap.size) {
         console.log();
@@ -243,13 +255,11 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
             console.log();
         }
 
-        await Promise.all(getCode(exportsData).map(data => mkdir(join(dirName, 'src', dirname(data.exportName === '.' ? 'index.js' : `${join(dirname(data.exportName), basename(data.exportName))}.mjs`)), { recursive: true })));
-
         await Promise.all(getCode(exportsData)
-            .map(data => writeFile(join(dirName, 'src', data.exportName === '.' ? 'index.js' : `${join(dirname(data.exportName), basename(data.exportName))}.mjs`), data.code)));
+            .map((data, index) => writeFile(join(dirName, 'src', data.exportName === '.' ? 'index.js' : `${String(index)}.mjs`), data.code)));
         
-        packageJson.exports = exportsData.map(data => data.export).reduce((acc, exportName) => {
-            acc[`./${exportName}`] = `./src/${exportName === '.' ? 'index.js' : join(dirname(exportName), basename(exportName))}.mjs`;
+        packageJson.exports = exportsData.map(data => data.export).reduce((acc, exportName, currentIndex) => {
+            acc[`./${exportName === '.' ? '' : String(currentIndex)}`] = `./src/${exportName === '.' ? 'index.js' : `${String(currentIndex)}.mjs`}`;
             return acc;
         }, /** @type {Record<string, string>} */({}));
 
@@ -258,7 +268,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
         const command = getCliString();
 
         await execEx(command, { cwd: dirName }, true);
-    }, 'Building package');    
+    }, 'Building package');
 
     function getCliString() {
         return `npx pkgbld --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
@@ -291,10 +301,14 @@ async function getExportsData(exports) {
             .filter(Boolean)
             .map(exportName => ({ import: `${packageName}${exportName === '.' ? '' : `/${exportName}`}`, export: /** @type {string} */(exportName) }));
 
-        return await Promise.all(packageExports.map(async packageExport => ({
+        const data = await Promise.all(packageExports.map(async packageExport => ({
             ...packageExport,
             hasDefaultExport: await hasDefaultExport(packageExport.import)
         })));
+
+        exportsData.push(...data);
+
+        return data;
 
     }, 'Resolving exports');
 }
