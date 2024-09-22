@@ -11,6 +11,9 @@ importers:
       cleye:
         specifier: 1.3.2
         version: 1.3.2
+      jsonata:
+        specifier: 2.0.5
+        version: 2.0.5
       kleur:
         specifier: 4.1.5
         version: 4.1.5

@@ -14,6 +14,7 @@ import kleur from 'kleur';
 import terminalColumns from 'terminal-columns';
 import { readPackageUp } from 'read-package-up';
 import prompt from 'prompts';
+import jsonata from 'jsonata';
 
 // promisified functions
 const execAsync = promisify(exec);
@@ -118,6 +119,10 @@ async function interactiveMode(deps, exports) {
         }
     ]);
 
+    if (!selectedExports) {
+        throw new Error('Cancelled');
+    }
+
     const { dependencies: selectedDependencies } = await prompt([
         {
             type: 'multiselect',
@@ -126,6 +131,10 @@ async function interactiveMode(deps, exports) {
             choices: deps.map(dependency => ({ title: dependency, value: dependency }))
         }
     ]);
+
+    if (!selectedDependencies) {
+        throw new Error('Cancelled');
+    }
 
     logger.start(loggerText);
 
@@ -348,10 +357,12 @@ async function resolvePackageJson() {
             }
             /** @type {string} */
             const version = typeof pkg?.version === 'string' ? pkg.version : String(pkg?.version);
-            const dependencies = Object.keys(pkg?.dependencies ?? {});
-            const peerDependencies = Object.keys(pkg?.peerDependencies ?? {});
-            const deps = new Set([...dependencies, ...peerDependencies]);
-            return { exports, version, deps: [...deps] };
+
+            const dependenciesJson = await execEx('npm list --all --json', { cwd: dirName });
+            const dependenciesFullParsed = JSON.parse(dependenciesJson);
+            /** @type {string[]} */
+            const deps = await jsonata('$keys(**.dependencies)').evaluate(dependenciesFullParsed);
+            return { exports, version, deps };
         }, 'Resolving package.json', false);
     } catch (e) {
         return { exports: [], version: '<unknown>', deps: [] };
