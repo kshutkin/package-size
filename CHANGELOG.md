@@ -1,5 +1,12 @@
 # pkgsz
 
+## 0.7.0
+
+### Minor Changes
+
+- 46d3767: more information about package subexports printed
+  fixed use case with deep package subexports
+
 ## 0.6.0
 
 ### Minor Changes
