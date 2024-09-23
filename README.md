@@ -18,13 +18,13 @@ npx pkgsz [flags] <package name> [version]
 - Supports custom registries (without authentication)
 - Interactive mode
 
-## Limitations
+## :bell: Limitations
 
 - If you are using something like angular size will be incorrect because this tool does not include the angular compiler (or any other UI framework / library compiler)
 - Only reports sizes in binary units (Kib, Mib, bytes)
 - Installs using `npm install` and not `yarn` / `pnpm` / `bun` etc.
 
-## Options
+## :key: Options
 
 ### -i, --interactive
 
@@ -62,6 +62,6 @@ Show help
 
 Show version
 
-# License
+# :information_source: License
 
 [MIT](https://github.com/kshutkin/package-size/blob/main/LICENSE)
