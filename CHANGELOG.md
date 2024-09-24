@@ -1,5 +1,12 @@
 # pkgsz
 
+## 0.8.1
+
+### Patch Changes
+
+- 16d7db7: fixed empty subpath exports interactive mode
+  fixed single dependency interactive mode
+
 ## 0.8.0
 
 ### Minor Changes
