@@ -110,17 +110,24 @@ async function interactiveMode(deps, exports) {
     const loggerText = logger.text;
     logger.stop();
 
-    const { exports: selectedExports } = await prompt([
-        {
-            type: 'multiselect',
-            name: 'exports',
-            message: 'Which subpaths do you want to reexport?',
-            choices: exports.map(exportName => ({ title: exportName, value: exportName, disabled: exportName.includes('*') }))
-        }
-    ]);
+    /** @type {string[]} */
+    let selectedExports = ['.'];
 
-    if (!selectedExports) {
-        throw new Error('Cancelled');
+    if (exports.length > 1) {
+        const { exports: exportsFromPrompt } = await prompt([
+            {
+                type: 'multiselect',
+                name: 'exports',
+                message: 'Which subpaths do you want to reexport?',
+                choices: exports.map(exportName => ({ title: exportName, value: exportName, disabled: exportName.includes('*') }))
+            }
+        ]);
+
+        if (!exportsFromPrompt) {
+            throw new Error('Cancelled');
+        }
+
+        selectedExports = exportsFromPrompt;
     }
 
     const { dependencies: selectedDependencies } = await prompt([
@@ -361,7 +368,7 @@ async function resolvePackageJson() {
             const dependenciesJson = await execEx('npm list --all --json', { cwd: dirName });
             const dependenciesFullParsed = JSON.parse(dependenciesJson);
             /** @type {string[]} */
-            const deps = await jsonata('$keys(**.dependencies)').evaluate(dependenciesFullParsed);
+            const deps = await jsonata('[$keys(**.dependencies)]').evaluate(dependenciesFullParsed);
             return { exports, version, deps };
         }, 'Resolving package.json', false);
     } catch (e) {
