@@ -287,7 +287,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
     }, 'Building package');
 
     function getCliString() {
-        return `npx pkgbld --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
+        return `npx pkgbld --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --remove-legal-comments --includeExternals${dependencies ? `=${dependencies.join(',')}` : ''}`;
     }
 }
 
