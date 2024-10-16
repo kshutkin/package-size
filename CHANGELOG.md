@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.9.0
+
+### Minor Changes
+
+- 0893e21: Remove legal comments when minifying
+
 ## 0.8.1
 
 ### Patch Changes
