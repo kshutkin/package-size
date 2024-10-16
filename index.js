@@ -3,7 +3,7 @@
 import { exec } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { constants, gzip, brotliCompress } from 'node:zlib';
@@ -171,10 +171,14 @@ function printResults() {
 
     if (exportsData.length) {
         console.log();
-        console.log(kleur.underline('Exports:'));
-        console.log();
-        // @ts-ignore
-        console.log(terminalColumns(exportsData.map(data => [data.export, data.hasDefaultExport ? kleur.green('default export') : kleur.blue('no default export')]), [{ width: 'content-width', paddingRight: 4 }, { width: 'content-width', paddingRight: 4 }]));
+        if (exportsData.length === 1) {
+            console.log(`Exports:${(` ${exportsData[0].export} ${exportsData[0].hasDefaultExport ? kleur.grey('(default export)') : ''}`)}`);
+        } else {
+            console.log(kleur.underline('Exports:'));
+            console.log();
+            // @ts-ignore
+            console.log(terminalColumns(exportsData.map(data => [data.export, data.hasDefaultExport ? kleur.green('default export') : kleur.blue('no default export')]), [{ width: 'content-width', paddingRight: 4 }, { width: 'content-width', paddingRight: 4 }]));
+        }
     }
 
     if (compositionMap.size) {
