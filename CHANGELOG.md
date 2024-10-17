@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.10.0
+
+### Minor Changes
+
+- 94bef74: Improve single export data formatting
+
 ## 0.9.0
 
 ### Minor Changes
