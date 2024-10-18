@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.10.1
+
+### Patch Changes
+
+- 1f3b9de: updated pkgbld to include prune fix
+
 ## 0.10.0
 
 ### Minor Changes
