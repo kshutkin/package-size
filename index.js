@@ -45,7 +45,7 @@ const compositionMap = new Map;
 /**
  * @type {{ export: string, import: string, hasDefaultExport: boolean }[]}
  */
-const exportsData = [];
+let exportsData = [];
 
 /**
  * @type {(() => Promise<void> | void)[]}
@@ -81,10 +81,10 @@ if (version && version !== packageVersion) {
 if (flags.interactive) {
     const { selectedExports, selectedDependencies } = await interactiveMode(deps, exports);
     selectedDependencies.push(packageName);
-    const exportsData = await getExportsData(selectedExports);
+    exportsData = await getExportsData(selectedExports);
     await buildPackage(exports, exportsData, selectedDependencies);
 } else {
-    const exportsData = await getExportsData(flags.export);
+    exportsData = await getExportsData(flags.export);
 
     await buildPackage(exports, exportsData);
 }
@@ -283,6 +283,8 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
             return acc;
         }, /** @type {Record<string, string>} */({}));
 
+        packageJson.main = undefined;
+
         await writeFile(join(dirName, 'package.json'), JSON.stringify(packageJson, null, 2));
 
         const command = getCliString();
@@ -321,12 +323,11 @@ async function getExportsData(exports) {
             .filter(Boolean)
             .map(exportName => ({ import: `${packageName}${exportName === '.' ? '' : `/${exportName}`}`, export: /** @type {string} */(exportName) }));
 
-        const data = await Promise.all(packageExports.map(async packageExport => ({
-            ...packageExport,
-            hasDefaultExport: await hasDefaultExport(packageExport.import)
-        })));
+        const data = [];
 
-        exportsData.push(...data);
+        for (const packageExport of packageExports) {
+            data.push({ ...packageExport, hasDefaultExport: await hasDefaultExport(packageExport.import) });
+        }
 
         return data;
 
@@ -341,8 +342,18 @@ async function hasDefaultExport(importName) {
     return wrapWithLogger(async () => {
         try {
             await execEx(`node --input-type=module -e "import pkg from '${importName}';"`, { cwd: dirName });
+
+            await writeFile(join(dirName, 'src', 'index.js'), `import $index from '${importName}';`);
+
+            const errors = await execEx('npx pkgbld --no-ts-config --no-update-package-json --no-clean --formats=es --includeExternals', { cwd: dirName }, true, false);
+
+            if (errors.includes('"default" is not exported by')) {
+                return false;
+            }
+
             return true;
         } catch (e) {
+            console.error(e);
             return false;
         }        
     }, 'Checking for default export');
@@ -395,6 +406,7 @@ function calculateNodeModulesSize() {
  */
 function createPackageJson() {
     const pkg = {
+        main: 'dist/index.js',
         dependencies: {
             [packageName]: version ?? '*'
         }
@@ -629,10 +641,10 @@ function formatSize(size) {
  * @param {string} command 
  * @param {import('node:child_process').ExecOptions} options 
  */
-async function execEx(command, options, returnStderr = false) {
+async function execEx(command, options, returnStderr = false, debugPrint = true) {
     try {
         const result = await execAsync(command, options);
-        if (result.stderr) {
+        if (debugPrint && result.stderr) {
             console.debug(result.stderr);
         }
         return result[returnStderr ? 'stderr' : 'stdout'].toString();
@@ -649,7 +661,7 @@ async function execEx(command, options, returnStderr = false) {
  */
 async function wrapWithLogger(fn, message, fatal = true) {
     try {
-        logger.start(`${message}...`);
+        logger.start(`${message}... `);
         return await fn();
     } catch (/** @type {any} */ error) {
         const text = `${message} (failed)`;
