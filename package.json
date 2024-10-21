@@ -27,7 +27,7 @@
     "jsonata": "2.0.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.2",
+    "@biomejs/biome": "1.9.4",
     "@changesets/cli": "2.27.9",
     "@types/node": "^20.14.15"
   },
