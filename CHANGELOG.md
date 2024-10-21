@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.11.0
+
+### Minor Changes
+
+- dcff719: use rollup to check for default exports
+
 ## 0.10.1
 
 ### Patch Changes
