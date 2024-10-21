@@ -10,6 +10,10 @@ Get the size of an npm package.
 npx pkgsz [flags] <package name> [version]
 ```
 
+## Example
+
+![Demo](./demo.gif)
+
 ## :bulb: Features
 
 - Uses rollup to build the package (probably more accurate results in modern vite world)
