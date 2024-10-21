@@ -10,6 +10,10 @@ Get the size of an npm package.
 npx pkgsz [flags] <package name> [version]
 ```
 
+## Requirements
+
+- Node.js 20+
+
 ## Example
 
 ![Demo](./demo.gif)
