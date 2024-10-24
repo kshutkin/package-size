@@ -1,5 +1,12 @@
 # pkgsz
 
+## 0.11.1
+
+### Patch Changes
+
+- 00af172: Removed node import code because we only need rollup one
+  Started working on json output and tests
+
 ## 0.11.0
 
 ### Minor Changes
