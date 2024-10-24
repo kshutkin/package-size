@@ -10,7 +10,8 @@
   "scripts": {
     "lint": "biome lint index.js",
     "ci:publish": "changeset publish",
-    "prepack": "pkgbld prune"
+    "prepack": "pkgbld prune",
+    "test": "c8 --src=. --all -r=html node --env-file=ci.env test.js"
   },
   "engines": {
     "node": ">=20"
@@ -29,7 +30,9 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "2.27.9",
-    "@types/node": "^20.14.15"
+    "@types/node": "^20.14.15",
+    "c8": "^10.0.0",
+    "cli-test-helper": "0.1.1"
   },
   "keywords": [
     "npm",

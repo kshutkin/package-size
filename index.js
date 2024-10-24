@@ -60,9 +60,9 @@ const { packageName, version, flags } = await getCliArgs();
 
 validateExports(flags.export);
 
-const logger = ora();
+const logger = createLogger(flags.json);
 
-console.log();
+logger.log();
 
 const dirName = await createDirs();
 
@@ -75,7 +75,7 @@ calculateNodeModulesSize();
 const { exports, version: packageVersion, deps } = await resolvePackageJson();
 
 if (version && version !== packageVersion) {
-    console.warn(`Installed version is ${packageVersion}`);
+    logger.log(`Installed version is ${packageVersion}`, 'warn');
 }
 
 if (flags.interactive) {
@@ -149,6 +149,18 @@ async function interactiveMode(deps, exports) {
 }
 
 function printResults() {
+
+    if (flags.json) {
+        const result = {
+            // sizes: [...results].map(result => ({
+            //     caption: result.caption,
+            //     sizeShort: result.sizeShort,
+            //     sizeBytes: result.sizeBytes
+            // }))
+        };
+        console.log(JSON.stringify(result, null, 2));
+        return;
+    }
 
     const options = [
         {
@@ -269,10 +281,10 @@ async function prunePackage() {
 async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
     return wrapWithLogger(async () => {
         if (pkgExports.length) {
-            console.log(`Found subpath exports: ${kleur.green(pkgExports.join(', '))}`);
-            console.log();
-            console.log(kleur.yellow(`Note: Building ${(exportsData.length === 1 && exportsData[0].import === packageName) ? 'root package export' : `subpath exports: ${exportsData.map(data => kleur.green(data.export)).join(', ')}`}`));
-            console.log();
+            logger.log(`Found subpath exports: ${kleur.green(pkgExports.join(', '))}`);
+            logger.log();
+            logger.log(kleur.yellow(`Note: Building ${(exportsData.length === 1 && exportsData[0].import === packageName) ? 'root package export' : `subpath exports: ${exportsData.map(data => kleur.green(data.export)).join(', ')}`}`));
+            logger.log();
         }
 
         await Promise.all(getCode(exportsData)
@@ -341,11 +353,9 @@ async function getExportsData(exports) {
 async function hasDefaultExport(importName) {
     return wrapWithLogger(async () => {
         try {
-            await execEx(`node --input-type=module -e "import pkg from '${importName}';"`, { cwd: dirName });
-
             await writeFile(join(dirName, 'src', 'index.js'), `import $index from '${importName}';`);
 
-            const errors = await execEx('npx pkgbld --no-ts-config --no-update-package-json --no-clean --formats=es --includeExternals', { cwd: dirName }, true, false);
+            const errors = await execEx('npx pkgbld --no-ts-config --no-update-package-json --formats=es --includeExternals', { cwd: dirName }, true, false);
 
             if (errors.includes('"default" is not exported by')) {
                 return false;
@@ -353,7 +363,7 @@ async function hasDefaultExport(importName) {
 
             return true;
         } catch (e) {
-            console.error(e);
+            logger.log(e);
             return false;
         }        
     }, 'Checking for default export');
@@ -430,7 +440,7 @@ function createDirs() {
         if (!flags.noClean) {
             cleanup.push(() => rm(dirName, { recursive: true, force: true }));
         } else {
-            cleanup.push(() => { console.log('Cleanup disabled, directory is left at: ', dirName); });
+            cleanup.push(() => { logger.log('Cleanup disabled, directory is left at: ', dirName); });
         }
 
         await mkdir(join(dirName, 'src'), { recursive: true });
@@ -493,6 +503,12 @@ async function getCliArgs() {
                 alias: 'i',
                 description: 'Interactive mode',
                 default: false
+            },
+            json: {
+                type: Boolean,
+                alias: 'j',
+                description: 'Output results as JSON',
+                default: false
             }
         },
 
@@ -505,6 +521,12 @@ async function getCliArgs() {
             ],
         }
     });
+
+    if (argv.flags.json && argv.flags.interactive) {
+        logger.error('Cannot use --json and --interactive flags together');
+        argv.flags.json = false;
+    }
+
     return {
         version: argv._.version,
         packageName: argv._.packageName,
@@ -645,7 +667,7 @@ async function execEx(command, options, returnStderr = false, debugPrint = true)
     try {
         const result = await execAsync(command, options);
         if (debugPrint && result.stderr) {
-            console.debug(result.stderr);
+            logger.log(result.stderr);
         }
         return result[returnStderr ? 'stderr' : 'stdout'].toString();
     } catch (/** @type {any} */ e) {
@@ -669,7 +691,73 @@ async function wrapWithLogger(fn, message, fatal = true) {
             logger.fail(`${text}\n${error.message}`);
             return await exitAndReport(1);
         }
-        console.error(text, error);
+        logger.error(text, error);
         throw error;
     }
+}
+
+/**
+ * @param {boolean} quiet
+ */
+function createLogger(quiet) {
+    /** @type {import('ora').Ora | undefined} */
+    let logger;
+    if (!quiet) {
+        logger = ora();
+    }
+    return {
+        /**
+         * @param {string} message
+         */
+        start(message) {
+            logger?.start(message);
+        },
+        /**
+         * @param {string} message
+         */
+        fail(message) {
+            logger?.fail(message);
+        },
+        /**
+         * @param {string} message
+         */
+        succeed(message) {
+            logger?.succeed(message);
+        },
+
+        stop() {
+            logger?.stop();
+        },
+
+        get text() {
+            return logger?.text ?? '';
+        },
+
+        /**
+         * @param {...unknown} message
+         */
+        log(...message) {
+            if (!quiet) {
+                console.log(...message);
+            }
+        },
+
+        /**
+         * @param {...unknown} message
+         */
+        warn(...message) {
+            if (!quiet) {
+                console.warn(...message);
+            }
+        },
+
+        /**
+         * @param {...unknown} message
+         */
+        error(...message) {
+            if (!quiet) {
+                console.error(...message);
+            }
+        }
+    };
 }
