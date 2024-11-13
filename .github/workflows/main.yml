@@ -40,6 +40,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile --prefer-offline --reporter=append-only
       - run: npm run lint
+      - run: npm test
 
   publish:
 
