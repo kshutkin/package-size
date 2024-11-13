@@ -21,12 +21,21 @@ const execAsync = promisify(exec);
 const gzipAsync = promisify(gzip);
 const brotliAsync = promisify(brotliCompress);
 
+const resultCaptions = {
+    'sizeMinified': 'minified',
+    'sizeMinifiedGzipped': 'minified + gzip',
+    'sizeMinifiedBrotli': 'minified + brotli',
+    'nodeModulesSize': 'node_modules',
+    'nodeModulesFiles': 'node_modules files',
+};
+
 // types
+/** @typedef {'bytes' | 'count'} Unit */
 /**
  * @typedef {Object} Result
- * @property {string} caption
- * @property {string} sizeShort
- * @property {string} sizeBytes
+ * @property {keyof resultCaptions} id
+ * @property {number} value
+ * @property {Unit} unit
  */
 
 /**
@@ -152,11 +161,17 @@ function printResults() {
 
     if (flags.json) {
         const result = {
-            // sizes: [...results].map(result => ({
-            //     caption: result.caption,
-            //     sizeShort: result.sizeShort,
-            //     sizeBytes: result.sizeBytes
-            // }))
+            metadata: {
+                name: packageName,
+                version: packageVersion,
+            },
+            exports,
+            includedExports: exportsData.map(data => ({
+                export: data.export,
+                defaultExport: data.hasDefaultExport
+            })),
+            results: [...results],
+            composition: [...compositionMap.entries()]
         };
         console.log(JSON.stringify(result, null, 2));
         return;
@@ -179,7 +194,7 @@ function printResults() {
     console.log();
 
     // @ts-ignore
-    console.log(terminalColumns([...results].map(result => [result.caption, result.sizeShort, result.sizeBytes]), options));
+    console.log(terminalColumns([...results].map(formatResult), options));
 
     if (exportsData.length) {
         console.log();
@@ -219,17 +234,14 @@ function calculateDistSize() {
     return wrapWithLogger(async () => {
         const files = await filesInDir(join(dirName, 'dist'));
         const dirCompressedResults = await dirCompressedSize(files, /** @type {CompressionMethod[]} */(['none', flags.noGzip ? null : 'gzip', flags.brotli ? 'brotli' : null].filter(Boolean)));
-        {
-            const textSize = formatSize(/** @type {number} */(dirCompressedResults.none));
-            results.add({ caption: 'minified', sizeShort: textSize[0], sizeBytes: textSize[1] });
+        if ('none' in dirCompressedResults && typeof dirCompressedResults.none === 'number') {
+            results.add({ id: 'sizeMinified', value: dirCompressedResults.none, unit: 'bytes' });
         }
-        if (!flags.noGzip) {
-            const textGzSize = formatSize( /** @type {number} */(dirCompressedResults.gzip));
-            results.add({ caption: 'minified + gzip', sizeShort: textGzSize[0], sizeBytes: textGzSize[1] });
+        if (!flags.noGzip && 'gzip' in dirCompressedResults && typeof dirCompressedResults.gzip === 'number') {
+            results.add({ id: 'sizeMinifiedGzipped', value: dirCompressedResults.gzip, unit: 'bytes' });
         }
-        if (flags.brotli) {
-            const textBrotliSize = formatSize(/** @type {number} */(dirCompressedResults.brotli));
-            results.add({ caption: 'minified + brotli', sizeShort: textBrotliSize[0], sizeBytes: textBrotliSize[1] });
+        if (flags.brotli && 'brotli' in dirCompressedResults && typeof dirCompressedResults.brotli === 'number') {
+            results.add({ id: 'sizeMinifiedBrotli', value: dirCompressedResults.brotli, unit: 'bytes' });
         }
     }, 'Calculating sizes / finalizing');
 }
@@ -405,9 +417,8 @@ function calculateNodeModulesSize() {
     deferred.push((async () => {
         const files = await filesInDir(join(dirName, 'node_modules'));
         const size = await dirSize(files);
-        const text = formatSize(size);
-        results.add({ caption: 'node_modules', sizeShort: text[0], sizeBytes: text[1] });
-        results.add({ caption: 'node_modules files', sizeShort: String(files.length), sizeBytes: '' });
+        results.add({ id: 'nodeModulesSize', value: size, unit: 'bytes' });
+        results.add({ id: 'nodeModulesFiles', value: files.length, unit: 'count' });
     })());
 }
 
@@ -642,6 +653,17 @@ async function dirCompressedSize(paths, methods) {
 async function filesInDir(dir) {
     const dirEntries = await readdir(dir, { recursive: true, withFileTypes: true });
     return dirEntries.filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name));
+}
+
+/**
+ * @param {Result} result
+ */
+function formatResult(result) {
+    const caption = resultCaptions[result.id];
+    if (result.unit === 'bytes') {
+        return [caption, ...formatSize(result.value)];
+    }
+    return [caption, String(result.value), ''];
 }
 
 /**

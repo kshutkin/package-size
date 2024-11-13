@@ -62,6 +62,9 @@ The npm registry to use when installing the package
 
 Enable scripts
 
+### -j, --json
+Output results as JSON
+
 ### -h, --help
 
 Show help
