@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.12.0
+
+### Minor Changes
+
+- e8e6b35: added json output option
+
 ## 0.11.1
 
 ### Patch Changes
