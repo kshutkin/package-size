@@ -2,36 +2,6 @@
     "basic": [
         {
             "name": "esm",
-            "args": "@tstpkgs/basic-esm",
-            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + gzip 51 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
-        },
-        {
-            "name": "cjs",
-            "args": "@tstpkgs/basic-cjs",
-            "stdout": "node_modules 1.62 KiB (1657 bytes) node_modules files 5 minified 52 bytes minified + gzip 67 bytes Exports: . (default export) Composition: @tstpkgs/basic-cjs (self) 42 bytes [unmapped] 9 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-cjs@0.0.1\n"
-        }
-    ],
-    "brotli": [
-        {
-            "name": "esm",
-            "args": "@tstpkgs/basic-esm -b",
-            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + gzip 51 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
-        }
-    ],
-    "no-gzip": [
-        {
-            "name": "esm",
-            "args": "@tstpkgs/basic-esm -g",
-            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
-        }
-    ],
-    "json": [
-        {
-            "name": "esm",
             "args": "@tstpkgs/basic-esm -j",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 51, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
@@ -40,6 +10,22 @@
             "name": "cjs",
             "args": "@tstpkgs/basic-cjs -j",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 67, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        }
+    ],
+    "brotli": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm -bj",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 51, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedBrotli\", \"value\": 36, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        }
+    ],
+    "no-gzip": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm -gj",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
     ]

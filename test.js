@@ -15,6 +15,9 @@ const args = parseArgs({ options: {
     }
 }}).values;
 
+// dummy run to make sure the packages are installed
+await exec('node ./index.js @tstpkgs/basic-esm');
+
 for (const [suiteName, suiteTestCases] of Object.entries(tests)) {
     describe(suiteName, () => {
         for (const testCase of suiteTestCases) {
