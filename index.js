@@ -83,10 +83,6 @@ calculateNodeModulesSize();
 
 const { exports, version: packageVersion, deps } = await resolvePackageJson();
 
-if (version && version !== packageVersion) {
-    logger.log(`Installed version is ${packageVersion}`, 'warn');
-}
-
 if (flags.interactive) {
     const { selectedExports, selectedDependencies } = await interactiveMode(deps, exports);
     selectedDependencies.push(packageName);

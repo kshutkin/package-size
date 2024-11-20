@@ -1,0 +1,72 @@
+{
+    "basic": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm",
+            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + gzip 51 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
+        },
+        {
+            "name": "cjs",
+            "args": "@tstpkgs/basic-cjs",
+            "stdout": "node_modules 1.62 KiB (1657 bytes) node_modules files 5 minified 52 bytes minified + gzip 67 bytes Exports: . (default export) Composition: @tstpkgs/basic-cjs (self) 42 bytes [unmapped] 9 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-cjs@0.0.1\n"
+        }
+    ],
+    "brotli": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm -b",
+            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + gzip 51 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
+        }
+    ],
+    "no-gzip": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm -g",
+            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
+        }
+    ],
+    "json": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm -j",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 51, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "cjs",
+            "args": "@tstpkgs/basic-cjs -j",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 67, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        }
+    ],
+    "empty": [
+        {
+            "name": "cjs",
+            "args": "@tstpkgs/empty-cjs",
+            "stdout": "\"@tstpkgs/empty-cjs\" is imported by \"src/index.js\", but could not be resolved – treating it as an external dependency. node_modules 1.59 KiB (1626 bytes) node_modules files 4 minified 73 bytes minified + gzip 67 bytes Exports: . (default export) Composition: [unmapped] 72 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \nResolving package.json (failed) Error: node:internal/modules/esm/resolve:207\n  const resolvedOption = FSLegacyMainResolve(packageJsonUrlString, packageConfig.main, baseStringified);\n                         ^\n\nError: Cannot find package '/private/var/folders/pm/19lgbcd1281d8rpsnxg3ntgc0000gn/T/pkgsz-O0k2Tg/node_modules/@tstpkgs/empty-cjs/index.js' imported from /private/var/folders/pm/19lgbcd1281d8rpsnxg3ntgc0000gn/T/pkgsz-O0k2Tg/[eval1]\n    at legacyMainResolve (node:internal/modules/esm/resolve:207:26)\n    at packageResolve (node:internal/modules/esm/resolve:826:14)\n    at moduleResolve (node:internal/modules/esm/resolve:908:18)\n    at defaultResolve (node:internal/modules/esm/resolve:1038:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:557:12)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:539:17)\n    at Object.resolve (node:internal/modules/esm/initialize_import_meta:33:25)\n    at file:///private/var/folders/pm/19lgbcd1281d8rpsnxg3ntgc0000gn/T/pkgsz-O0k2Tg/[eval1]:1:25\n    at ModuleJob.run (node:internal/modules/esm/module_job:262:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:217:26) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v22.9.0\n\n    at execEx (file:///Users/kshutkin/projects/package-size/index.js:692:15)\n    at async file:///Users/kshutkin/projects/package-size/index.js:387:29\n    at async wrapWithLogger (file:///Users/kshutkin/projects/package-size/index.js:705:16)\n    at async resolvePackageJson (file:///Users/kshutkin/projects/package-size/index.js:385:16)\n    at async file:///Users/kshutkin/projects/package-size/index.js:84:52\n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/empty-cjs@<unknown>\n"
+        },
+        {
+            "name": "esm",
+            "args": "@tstpkgs/empty-esm",
+            "stdout": "\"@tstpkgs/empty-esm\" is imported by \"src/index.js\", but could not be resolved – treating it as an external dependency. node_modules 1.61 KiB (1646 bytes) node_modules files 4 minified 73 bytes minified + gzip 67 bytes Exports: . (default export) Composition: [unmapped] 72 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \nResolving package.json (failed) Error: node:internal/modules/esm/resolve:207\n  const resolvedOption = FSLegacyMainResolve(packageJsonUrlString, packageConfig.main, baseStringified);\n                         ^\n\nError: Cannot find package '/private/var/folders/pm/19lgbcd1281d8rpsnxg3ntgc0000gn/T/pkgsz-7YMDRf/node_modules/@tstpkgs/empty-esm/index.js' imported from /private/var/folders/pm/19lgbcd1281d8rpsnxg3ntgc0000gn/T/pkgsz-7YMDRf/[eval1]\n    at legacyMainResolve (node:internal/modules/esm/resolve:207:26)\n    at packageResolve (node:internal/modules/esm/resolve:826:14)\n    at moduleResolve (node:internal/modules/esm/resolve:908:18)\n    at defaultResolve (node:internal/modules/esm/resolve:1038:11)\n    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:557:12)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:539:17)\n    at Object.resolve (node:internal/modules/esm/initialize_import_meta:33:25)\n    at file:///private/var/folders/pm/19lgbcd1281d8rpsnxg3ntgc0000gn/T/pkgsz-7YMDRf/[eval1]:1:25\n    at ModuleJob.run (node:internal/modules/esm/module_job:262:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:217:26) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v22.9.0\n\n    at execEx (file:///Users/kshutkin/projects/package-size/index.js:692:15)\n    at async file:///Users/kshutkin/projects/package-size/index.js:387:29\n    at async wrapWithLogger (file:///Users/kshutkin/projects/package-size/index.js:705:16)\n    at async resolvePackageJson (file:///Users/kshutkin/projects/package-size/index.js:385:16)\n    at async file:///Users/kshutkin/projects/package-size/index.js:84:52\n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/empty-esm@<unknown>\n"
+        },
+        {
+            "name": "cjs - json",
+            "args": "@tstpkgs/empty-cjs -j",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/empty-cjs\", \"version\": \"<unknown>\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1626, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 4, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 73, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 67, \"unit\": \"bytes\" } ], \"composition\": [ [ \"[unmapped]\", 72 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "esm - json",
+            "args": "@tstpkgs/empty-esm -j",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/empty-esm\", \"version\": \"<unknown>\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1646, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 4, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 73, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 67, \"unit\": \"bytes\" } ], \"composition\": [ [ \"[unmapped]\", 72 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        }
+    ]
+}
