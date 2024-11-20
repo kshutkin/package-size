@@ -48,9 +48,6 @@ importers:
       c8:
         specifier: ^10.0.0
         version: 10.1.2
-      cli-test-helper:
-        specifier: 0.1.1
-        version: 0.1.1
 
 packages:
 
@@ -543,9 +540,6 @@ packages:
   cli-spinners@2.9.2:
     resolution: {integrity: sha512-ywqV+5MmyL4E7ybXgKys4DugZbX0FC6LnwrhjuykIjnK9k8OQacQ7axGKnjDXWNhns0xot3bZI5h55H8yo9cJg==}
     engines: {node: '>=6'}
-
-  cli-test-helper@0.1.1:
-    resolution: {integrity: sha512-mB0f0BoD2W17qSVWoZC0f1TuBkDbOfemPOQqHSv3uUtHYAOSOTCzeUxoN1oEBHDjx1sjeVifph1y96ZWmvmPOA==}
 
   cliui@7.0.4:
     resolution: {integrity: sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ==}
@@ -1913,8 +1907,6 @@ snapshots:
       restore-cursor: 5.1.0
 
   cli-spinners@2.9.2: {}
-
-  cli-test-helper@0.1.1: {}
 
   cliui@7.0.4:
     dependencies:
