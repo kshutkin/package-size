@@ -2,30 +2,22 @@
     "basic": [
         {
             "name": "esm",
-            "args": "@tstpkgs/basic-esm -j",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 51, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
+            "args": "@tstpkgs/basic-esm -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "cjs",
-            "args": "@tstpkgs/basic-cjs -j",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 67, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
+            "args": "@tstpkgs/basic-cjs -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
     ],
     "brotli": [
         {
             "name": "esm",
-            "args": "@tstpkgs/basic-esm -bj",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedGzipped\", \"value\": 51, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedBrotli\", \"value\": 36, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
-            "stderr": ""
-        }
-    ],
-    "no-gzip": [
-        {
-            "name": "esm",
-            "args": "@tstpkgs/basic-esm -gj",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
+            "args": "@tstpkgs/basic-esm -bjg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedBrotli\", \"value\": 36, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
     ]
