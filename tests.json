@@ -20,5 +20,13 @@
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedBrotli\", \"value\": 36, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
+    ],
+    "text-output": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/basic-esm -bg",
+            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
+        }
     ]
 }
