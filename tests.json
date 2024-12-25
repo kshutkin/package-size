@@ -11,6 +11,42 @@
             "args": "@tstpkgs/basic-cjs -jg",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
+        },
+        {
+            "name": "empty-cjs",
+            "args": "@tstpkgs/empty-cjs -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/empty-cjs\", \"version\": \"<unknown>\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1626, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 4, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 73, \"unit\": \"bytes\" } ], \"composition\": [ [ \"[unmapped]\", 72 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "empty-esm",
+            "args": "@tstpkgs/empty-cjs -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/empty-cjs\", \"version\": \"<unknown>\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1626, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 4, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 73, \"unit\": \"bytes\" } ], \"composition\": [ [ \"[unmapped]\", 72 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "shared-cjs",
+            "args": "@tstpkgs/top-level-cjs-lib -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-cjs-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8779, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 292, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/dual-subpath-exports-cjs\", 43 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 45 ], [ \"@tstpkgs/intermediate-cjs-lib\", 42 ], [ \"@tstpkgs/top-level-cjs-lib\", 149 ], [ \"[unmapped]\", 12 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "shared-esm",
+            "args": "@tstpkgs/top-level-esm-lib -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-esm-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8735, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 116, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/dual-subpath-exports-cjs\", 37 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 78 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "several-exports-cjs",
+            "args": "@tstpkgs/subpath-exports-cjs -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/subpath-exports-cjs\", \"version\": \"0.0.1\" }, \"exports\": [ \".\", \"./second\", \"./package.json\" ], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1864, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/subpath-exports-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "several-exports-esm",
+            "args": "@tstpkgs/subpath-exports-esm -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/subpath-exports-esm\", \"version\": \"0.0.1\" }, \"exports\": [ \".\", \"./second\", \"./package.json\" ], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1898, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 30, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/subpath-exports-esm\", 29 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
         }
     ],
     "brotli": [
@@ -26,7 +62,28 @@
             "name": "esm",
             "args": "@tstpkgs/basic-esm -bg",
             "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... \n- Installing package... \n- Resolving package.json... \n- Resolving exports... \n- Checking for default export... \n- Building package... \n- Exploring sourcemaps... \n- Pruning package... \n- Calculating sizes / finalizing... \n✔ Package: @tstpkgs/basic-esm@0.0.1\n"
+            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/basic-esm@0.0.1"
+        },
+        {
+            "name": "several-exports-cjs",
+            "args": "@tstpkgs/subpath-exports-cjs -bg",
+            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building root package export node_modules 1.82 KiB (1864 bytes) node_modules files 6 minified 52 bytes minified + brotli 56 bytes Exports: . (default export) Composition: @tstpkgs/subpath-exports-cjs (self) 42 bytes [unmapped] 9 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/subpath-exports-cjs@0.0.1"
+        },
+        {
+            "name": "several-exports-esm",
+            "args": "@tstpkgs/subpath-exports-esm -bg",
+            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building root package export node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 30 bytes minified + brotli 34 bytes Exports: . Composition: @tstpkgs/subpath-exports-esm (self) 29 bytes [EOLs] 2 bytes",
+            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/subpath-exports-esm@0.0.1"
+        }
+    ],
+    "invalid-parameters": [
+        {
+            "name": "json-interactive",
+            "args": "@tstpkgs/basic-esm -ji",
+            "stdout": "",
+            "stderr": "Cannot use --json and --interactive flags together",
+            "exitCode": 1
         }
     ]
 }

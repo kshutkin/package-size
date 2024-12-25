@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { constants, gzip, brotliCompress } from 'node:zlib';
+import { brotliCompress, constants, gzip } from 'node:zlib';
 // 3rd party imports
 import ora from 'ora';
 import { cli } from 'cleye';
@@ -45,6 +45,8 @@ const resultCaptions = {
 // globals
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const logger = createLogger();
+
 /**
  * @type {Set.<Result>}
  */
@@ -67,9 +69,11 @@ const deferred = [];
 
 const { packageName, version, flags } = await getCliArgs();
 
-validateExports(flags.export);
+if (flags.json) {
+    logger.makeQuiet();
+}
 
-const logger = createLogger(flags.json);
+validateExports(flags.export);
 
 logger.log();
 
@@ -365,11 +369,7 @@ async function hasDefaultExport(importName) {
 
             const errors = await execEx('npx pkgbld --no-ts-config --no-update-package-json --formats=es --includeExternals', { cwd: dirName }, true, false);
 
-            if (errors.includes('"default" is not exported by')) {
-                return false;
-            }
-
-            return true;
+            return !errors.includes('"default" is not exported by');
         } catch (e) {
             logger.log(e);
             return false;
@@ -422,14 +422,12 @@ function calculateNodeModulesSize() {
  * @returns {Record<string, any>}
  */
 function createPackageJson() {
-    const pkg = {
+    return {
         main: 'dist/index.js',
         dependencies: {
             [packageName]: version ?? '*'
         }
     };
-
-    return pkg;
 }
 
 function installPackage() {
@@ -531,7 +529,8 @@ async function getCliArgs() {
 
     if (argv.flags.json && argv.flags.interactive) {
         logger.error('Cannot use --json and --interactive flags together');
-        argv.flags.json = false;
+        // exiting here because of problems with the logger (ora) already initialized
+        process.exit(1);
     }
 
     return {
@@ -678,8 +677,10 @@ function formatSize(size) {
 }
 
 /**
- * @param {string} command 
- * @param {import('node:child_process').ExecOptions} options 
+ * @param {string} command
+ * @param {import('node:child_process').ExecOptions} options
+ * @param {boolean} [returnStderr]
+ * @param {boolean} [debugPrint]
  */
 async function execEx(command, options, returnStderr = false, debugPrint = true) {
     try {
@@ -697,6 +698,7 @@ async function execEx(command, options, returnStderr = false, debugPrint = true)
  * @template T
  * @param {() => Promise<T>} fn
  * @param {string} message
+ * @param {boolean} [fatal]
  * @returns {Promise<T>}
  */
 async function wrapWithLogger(fn, message, fatal = true) {
@@ -714,15 +716,10 @@ async function wrapWithLogger(fn, message, fatal = true) {
     }
 }
 
-/**
- * @param {boolean} quiet
- */
-function createLogger(quiet) {
+function createLogger() {
     /** @type {import('ora').Ora | undefined} */
-    let logger;
-    if (!quiet) {
-        logger = ora();
-    }
+    let logger = ora();
+    let quiet = false;
     return {
         /**
          * @param {string} message
@@ -776,6 +773,12 @@ function createLogger(quiet) {
             if (!quiet) {
                 console.error(...message);
             }
+        },
+
+        makeQuiet() {
+            quiet = true;
+            logger?.stop();
+            logger = undefined;
         }
     };
 }

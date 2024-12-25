@@ -4,6 +4,10 @@ import test, { after, describe } from 'node:test';
 import { parseArgs, promisify } from 'node:util';
 import tests from './tests.json' with { type: 'json' };
 import { writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const exec = promisify(cd.exec);
 
@@ -36,7 +40,7 @@ for (const [suiteName, suiteTestCases] of Object.entries(tests)) {
                     // @ts-ignore
                     testCase.stdout = clean(result?.stdout);
                     // @ts-ignore
-                    testCase.stderr = result?.stderr;
+                    testCase.stderr = clean(result?.stderr);
                     assert.ok(true);
                 } else {
                     // @ts-ignore
@@ -44,7 +48,7 @@ for (const [suiteName, suiteTestCases] of Object.entries(tests)) {
                     // @ts-ignore
                     assert.strictEqual(clean(result?.stdout), testCase.stdout);
                     // @ts-ignore
-                    assert.strictEqual(result?.stderr, testCase.stderr);
+                    assert.strictEqual(clean(result?.stderr), testCase.stderr);
                 }
             });
         }
@@ -70,5 +74,7 @@ function writeTestCases() {
  * @param {string} str 
  */
 function clean(str) {
-    return str.replace(/\s+/g, ' ').trim();
+    let result = str.replace(/\s+/g, ' ').trim();
+    result = result.replaceAll(__dirname, '<dirname>');
+    return result;
 }
