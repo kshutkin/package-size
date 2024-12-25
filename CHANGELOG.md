@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.12.1
+
+### Patch Changes
+
+- 03f0355: fixed crash when json and interactive options used together (because of no logger present)
+
 ## 0.12.0
 
 ### Minor Changes
