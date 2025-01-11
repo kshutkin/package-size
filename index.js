@@ -395,8 +395,7 @@ async function resolvePackageJson() {
             if (pkg && 'exports' in pkg && typeof pkg.exports === 'object' && pkg.exports !== null) {
                 exports.push(...Object.keys(pkg.exports).filter(exp => exp.startsWith('.')));
             }
-            /** @type {string} */
-            const version = typeof pkg?.version === 'string' ? pkg.version : String(pkg?.version);
+            const version = String(pkg?.version);
 
             const dependenciesJson = await execEx('npm list --all --json', { cwd: dirName });
             const dependenciesFullParsed = JSON.parse(dependenciesJson);
