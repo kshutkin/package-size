@@ -55,6 +55,20 @@
             "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/1mb@0.0.1"
         }
     ],
+    "scripts": [
+        {
+            "name": "esm",
+            "args": "@tstpkgs/with-scripts -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/with-scripts\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 3744, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 1029, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/with-scripts\", 1028 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "esm",
+            "args": "@tstpkgs/with-scripts -jgs",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/with-scripts\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 3744, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 1029, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/with-scripts\", 1028 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        }
+    ],
     "brotli": [
         {
             "name": "esm",
