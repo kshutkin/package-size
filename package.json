@@ -31,7 +31,8 @@
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "2.27.11",
     "@types/node": "^20.14.15",
-    "c8": "^10.0.0"
+    "c8": "^10.0.0",
+    "verdaccio": "^6.0.5"
   },
   "keywords": [
     "npm",
