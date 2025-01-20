@@ -20,7 +20,7 @@ npx pkgsz [flags] <package name> [version]
 
 ## :bulb: Features
 
-- Uses rollup to build the package (probably more accurate results in modern vite world)
+- Uses rollup to build the package (probably more accurate results in the modern vite world)
 - Reports the statistics regarding node_modules size and minified / gzipped size (brotli compression is optional)
 - Supports subpath exports
 - Supports custom registries (without authentication)
