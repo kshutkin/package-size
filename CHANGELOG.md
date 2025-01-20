@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.12.2
+
+### Patch Changes
+
+- c73bab0: Package version cannot be number
+
 ## 0.12.1
 
 ### Patch Changes

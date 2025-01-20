@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "name": "pkgsz",
   "description": "Get the size of an npm package",
   "license": "MIT",
