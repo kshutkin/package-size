@@ -24,7 +24,7 @@
     "prompts": "2.4.2",
     "read-package-up": "11.0.0",
     "source-map-explorer": "2.5.3",
-    "terminal-columns": "1.4.1",
+    "terminal-columns": "2.0.0",
     "jsonata": "2.0.6"
   },
   "devDependencies": {

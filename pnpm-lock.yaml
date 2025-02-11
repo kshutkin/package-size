@@ -33,8 +33,8 @@ importers:
         specifier: 2.5.3
         version: 2.5.3
       terminal-columns:
-        specifier: 1.4.1
-        version: 1.4.1
+        specifier: 2.0.0
+        version: 2.0.0
     devDependencies:
       '@biomejs/biome':
         specifier: 1.9.4
@@ -2084,6 +2084,9 @@ packages:
 
   terminal-columns@1.4.1:
     resolution: {integrity: sha512-IKVL/itiMy947XWVv4IHV7a0KQXvKjj4ptbi7Ew9MPMcOLzkiQeyx3Gyvh62hKrfJ0RZc4M1nbhzjNM39Kyujw==}
+
+  terminal-columns@2.0.0:
+    resolution: {integrity: sha512-6IByuUjyNZJXUtwDNm+OIe62zgwwaRbH+WMNTcx05O2G5V9WhvluAAHJY8OvUdwmzMPpqAD/7EUpGdI6ae1aiQ==}
 
   terser@5.31.5:
     resolution: {integrity: sha512-YPmas0L0rE1UyLL/llTWA0SiDOqIcAQYLeUj7cJYzXHlRTAnMSg9pPe4VJ5PlKvTrPQsdVFuiRiwyeNlYgwh2Q==}
@@ -4463,6 +4466,8 @@ snapshots:
   term-size@2.2.1: {}
 
   terminal-columns@1.4.1: {}
+
+  terminal-columns@2.0.0: {}
 
   terser@5.31.5:
     dependencies:
