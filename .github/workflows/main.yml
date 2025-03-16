@@ -24,3 +24,5 @@ jobs:
   pipeline:
     uses: kshutkin/pipeline/.github/workflows/main.yml@main
     secrets: inherit
+    with:
+      has-dist: false
