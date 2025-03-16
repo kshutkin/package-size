@@ -9,7 +9,7 @@
         {
             "name": "cjs",
             "args": "@tstpkgs/basic-cjs -jg",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 164, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 35 ], [ \"[unmapped]\", 128 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
@@ -27,7 +27,7 @@
         {
             "name": "shared-cjs",
             "args": "@tstpkgs/top-level-cjs-lib -jg",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-cjs-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8779, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 292, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/dual-subpath-exports-cjs\", 43 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 45 ], [ \"@tstpkgs/intermediate-cjs-lib\", 42 ], [ \"@tstpkgs/top-level-cjs-lib\", 149 ], [ \"[unmapped]\", 12 ], [ \"[EOLs]\", 2 ] ] }",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-cjs-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8779, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 513, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/intermediate-cjs-lib\", 94 ], [ \"@tstpkgs/dual-subpath-exports-cjs\", 49 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 55 ], [ \"@tstpkgs/top-level-cjs-lib\", 125 ], [ \"[unmapped]\", 189 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
@@ -39,7 +39,7 @@
         {
             "name": "several-exports-cjs",
             "args": "@tstpkgs/subpath-exports-cjs -jg",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/subpath-exports-cjs\", \"version\": \"0.0.1\" }, \"exports\": [ \".\", \"./second\", \"./package.json\" ], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1864, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 52, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/subpath-exports-cjs\", 42 ], [ \"[unmapped]\", 9 ], [ \"[EOLs]\", 2 ] ] }",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/subpath-exports-cjs\", \"version\": \"0.0.1\" }, \"exports\": [ \".\", \"./second\", \"./package.json\" ], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1864, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 164, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/subpath-exports-cjs\", 35 ], [ \"[unmapped]\", 128 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
@@ -87,7 +87,7 @@
         {
             "name": "several-exports-cjs",
             "args": "@tstpkgs/subpath-exports-cjs -bg",
-            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building root package export node_modules 1.82 KiB (1864 bytes) node_modules files 6 minified 52 bytes minified + brotli 56 bytes Exports: . (default export) Composition: @tstpkgs/subpath-exports-cjs (self) 42 bytes [unmapped] 9 bytes [EOLs] 2 bytes",
+            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building root package export node_modules 1.82 KiB (1864 bytes) node_modules files 6 minified 164 bytes minified + brotli 125 bytes Exports: . (default export) Composition: @tstpkgs/subpath-exports-cjs (self) 35 bytes [unmapped] 128 bytes [EOLs] 2 bytes",
             "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/subpath-exports-cjs@0.0.1"
         },
         {
