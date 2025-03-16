@@ -10,6 +10,7 @@
   "scripts": {
     "lint": "biome lint index.js",
     "ci:publish": "changeset publish",
+    "build": "",
     "prepack": "pkgbld prune",
     "test": "c8 --src=. --all -r=html -r=text node --env-file=ci.env test.js"
   },
