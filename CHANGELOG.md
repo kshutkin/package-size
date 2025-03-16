@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.12.3
+
+### Patch Changes
+
+- fd08461: Fixed minimum nodejs engine version
+
 ## 0.12.2
 
 ### Patch Changes
