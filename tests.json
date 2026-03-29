@@ -98,7 +98,7 @@
         },
         {
             "name": "several-exports-esm 2",
-            "args": "@tstpkgs/subpath-exports-esm -bg -e=./second -e=.",
+            "args": "@tstpkgs/subpath-exports-esm -bg -e ./second -e .",
             "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building subpath exports: second, . Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-esm@0.0.1 node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 61 bytes minified + brotli 69 bytes Exports: second no default export . no default export Composition: @tstpkgs/subpath-exports-esm (self) 59 bytes [EOLs] 4 bytes",
             "stderr": ""
         }
@@ -113,9 +113,9 @@
         },
         {
             "name": "star exports",
-            "args": "@tstpkgs/basic-esm -e=*",
+            "args": "@tstpkgs/basic-esm -e *",
             "stdout": "",
-            "stderr": "Wildcards are not supported: * Exports must start with a dot: *",
+            "stderr": "Exports must start with a dot: CHANGELOG.md",
             "exitCode": 1
         }
     ]

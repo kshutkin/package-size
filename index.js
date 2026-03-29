@@ -18,7 +18,10 @@ import { constants, brotliCompress, gzip } from "node:zlib";
 // 3rd party imports
 import "@niceties/draftlog-appender";
 import { createLogger as createNicetiesLogger } from "@niceties/logger";
-import { cli } from "cleye";
+import { parseArgsPlus } from "@niceties/node-parseargs-plus";
+import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
+import { help } from "@niceties/node-parseargs-plus/help";
+import { parameters } from "@niceties/node-parseargs-plus/parameters";
 import jsonata from "jsonata";
 import kleur from "kleur";
 import prompt from "prompts";
@@ -612,80 +615,81 @@ function createDirs() {
 async function getCliArgs() {
 	const version = await getMyVersion();
 
-	const argv = cli({
-		name: "pkgsz",
-
-		version,
-
-		parameters: ["<package name>", "[version]"],
-
-		flags: {
-			registry: {
-				type: String,
-				alias: "r",
-				description: "The npm registry to use when installing the package",
-			},
-			export: {
-				type: [String],
-				alias: "e",
-				description: "Reexport given subpath from the package",
-				default: ["."],
-			},
-			noGzip: {
-				type: Boolean,
-				alias: "g",
-				description: "Do not calculate gzipped size",
-				default: false,
-			},
-			brotli: {
-				type: Boolean,
-				alias: "b",
-				description: "Calculate brotli compressed size",
-				default: false,
-			},
-			noClean: {
-				type: Boolean,
-				alias: "c",
-				description: "Do not clean the temporary directory",
-				default: false,
-			},
-			enableScripts: {
-				type: Boolean,
-				alias: "s",
-				description: "Enable scripts",
-				default: false,
-			},
-			interactive: {
-				type: Boolean,
-				alias: "i",
-				description: "Interactive mode",
-				default: false,
-			},
-			json: {
-				type: Boolean,
-				alias: "j",
-				description: "Output results as JSON",
-				default: false,
-			},
-		},
-
-		help: {
+	const argv = parseArgsPlus(
+		{
+			name: "pkgsz",
+			version,
 			description: "Measure the size of a package and its dependencies.",
-
-			examples: ["npx pkgsz lodash", "npx pkgsz lodash 4.17.21"],
+			parameters: ["<package name>", "[version]"],
+			options: {
+				registry: {
+					type: "string",
+					short: "r",
+					description: "The npm registry to use when installing the package",
+				},
+				export: {
+					type: "string",
+					short: "e",
+					multiple: true,
+					description: "Reexport given subpath from the package",
+					default: ["."],
+				},
+				noGzip: {
+					type: "boolean",
+					short: "g",
+					description: "Do not calculate gzipped size",
+					default: false,
+				},
+				brotli: {
+					type: "boolean",
+					short: "b",
+					description: "Calculate brotli compressed size",
+					default: false,
+				},
+				noClean: {
+					type: "boolean",
+					short: "c",
+					description: "Do not clean the temporary directory",
+					default: false,
+				},
+				enableScripts: {
+					type: "boolean",
+					short: "s",
+					description: "Enable scripts",
+					default: false,
+				},
+				interactive: {
+					type: "boolean",
+					short: "i",
+					description: "Interactive mode",
+					default: false,
+				},
+				json: {
+					type: "boolean",
+					short: "j",
+					description: "Output results as JSON",
+					default: false,
+				},
+			},
+			helpSections: {
+				examples: {
+					title: "Examples",
+					text: ["npx pkgsz lodash", "npx pkgsz lodash 4.17.21"],
+				},
+			},
 		},
-	});
+		[help, parameters, camelCase],
+	);
 
-	if (argv.flags.json && argv.flags.interactive) {
+	if (argv.values.json && argv.values.interactive) {
 		logger.error("Cannot use --json and --interactive flags together");
-		// exiting here because of problems with the logger (ora) already initialized
 		process.exit(1);
 	}
 
 	return {
-		version: argv._.version,
-		packageName: argv._.packageName,
-		flags: argv.flags,
+		version: argv.parameters.version,
+		packageName: argv.parameters.packageName,
+		flags: argv.values,
 	};
 }
 
