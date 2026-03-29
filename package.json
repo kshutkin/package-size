@@ -22,13 +22,13 @@
 		"@niceties/logger": "^2.1.1",
 		"@niceties/node-parseargs-plus": "^0.5.1",
 		"@niceties/ansi": "^1.1.2",
-		"pkgbld": "^1.33.1",
+		"pkgbld": "^1.36.0",
 		"prompts": "2.4.2",
-		"read-package-up": "11.0.0",
+		"read-package-up": "12.0.0",
 		"source-map-explorer": "2.5.3"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
+		"@biomejs/biome": "2.4.9",
 		"@changesets/cli": "2.27.11",
 		"@types/node": "^20.14.15",
 		"c8": "^10.0.0"

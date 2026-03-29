@@ -212,7 +212,6 @@ function printResults() {
 		} else {
 			console.log(underline("Exports:"));
 			console.log();
-			// @ts-ignore
 			console.log(
 				formatColumns(
 					exportsData.map((data) => [
@@ -524,7 +523,7 @@ async function resolvePackageJson() {
 			"Resolving package.json",
 			false,
 		);
-	} catch (e) {
+	} catch {
 		return { exports: [], version: "<unknown>", deps: [] };
 	}
 }
@@ -746,7 +745,7 @@ async function readPackage(dir) {
 	try {
 		const pkgFile = await readFile(packageFileName);
 		return JSON.parse(pkgFile.toString());
-	} catch (e) {
+	} catch {
 		/**/
 	}
 }
@@ -937,7 +936,7 @@ async function wrapWithLogger(fn, message, fatal = true) {
 
 function createLogger() {
 	/** @type {ReturnType<typeof createNicetiesLogger> | undefined} */
-	let nicetiesLogger = undefined;
+	let nicetiesLogger;
 	let quiet = false;
 	let currentText = "";
 	let started = false;
