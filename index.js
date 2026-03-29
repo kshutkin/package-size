@@ -113,7 +113,11 @@ if (flags.interactive) {
 	await buildPackage(exports, exportsData);
 }
 
-await exploreSourcemaps();
+try {
+	await exploreSourcemaps();
+} catch {
+	// sourcemap exploration is optional, continue without composition data
+}
 
 await prunePackage();
 
@@ -336,7 +340,7 @@ async function exploreSourcemaps() {
 				}
 			}
 		}
-	}, "Exploring sourcemaps");
+	}, "Exploring sourcemaps", false);
 }
 
 async function prunePackage() {
