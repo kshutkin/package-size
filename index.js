@@ -22,6 +22,7 @@ import { createLogger as createNicetiesLogger } from "@niceties/logger";
 import { parseArgsPlus } from "@niceties/node-parseargs-plus";
 import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
 import { help } from "@niceties/node-parseargs-plus/help";
+import { readPackageJson } from "@niceties/node-parseargs-plus/package-info";
 import { parameters } from "@niceties/node-parseargs-plus/parameters";
 
 import prompt from "prompts";
@@ -54,8 +55,6 @@ const resultCaptions = {
  */
 
 // globals
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 const logger = createLogger();
 
 /**
@@ -612,13 +611,13 @@ function createDirs() {
 }
 
 async function getCliArgs() {
-	const version = await getMyVersion();
+	const pkg = await readPackageJson(import.meta.url);
 
 	const argv = parseArgsPlus(
 		{
 			name: "pkgsz",
-			version,
-			description: "Measure the size of a package and its dependencies.",
+			version: pkg.version,
+			description: pkg.description,
 			parameters: ["<package name>", "[version]"],
 			options: {
 				registry: {
@@ -725,17 +724,6 @@ function validateExports(exports) {
 }
 
 /**
- * @returns {Promise<string>}
- */
-async function getMyVersion() {
-	const pkg = await readPackage(resolve(__dirname));
-
-	return pkg && "version" in pkg && typeof pkg.version === "string"
-		? pkg.version
-		: "<unknown>";
-}
-
-/**
  * @param {number} code
  * @returns {Promise<never>}
  */
@@ -747,20 +735,6 @@ async function exitAndReport(code) {
 }
 
 // low level functions
-
-/**
- * @param {string} dir
- * @returns {Promise<object | undefined>}
- */
-async function readPackage(dir) {
-	const packageFileName = resolve(dir, "package.json");
-	try {
-		const pkgFile = await readFile(packageFileName);
-		return JSON.parse(pkgFile.toString());
-	} catch {
-		/**/
-	}
-}
 
 /**
  * @param {string[]} paths
