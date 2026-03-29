@@ -23,7 +23,7 @@ import { parseArgsPlus } from "@niceties/node-parseargs-plus";
 import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
 import { help } from "@niceties/node-parseargs-plus/help";
 import { parameters } from "@niceties/node-parseargs-plus/parameters";
-import jsonata from "jsonata";
+
 import prompt from "prompts";
 import { readPackageUp } from "read-package-up";
 import terminalColumns from "terminal-columns";
@@ -536,9 +536,7 @@ async function resolvePackageJson() {
 				});
 				const dependenciesFullParsed = JSON.parse(dependenciesJson);
 				/** @type {string[]} */
-				const deps = await jsonata("[$keys(**.dependencies)]").evaluate(
-					dependenciesFullParsed,
-				);
+				const deps = collectDependencyKeys(dependenciesFullParsed);
 				return { exports, version, deps };
 			},
 			"Resolving package.json",
@@ -547,6 +545,30 @@ async function resolvePackageJson() {
 	} catch (e) {
 		return { exports: [], version: "<unknown>", deps: [] };
 	}
+}
+
+/**
+ * Recursively collects all keys from any "dependencies" objects in the tree.
+ * Replaces jsonata("[$keys(**.dependencies)]").evaluate(obj)
+ * @param {Record<string, any>} obj
+ * @returns {string[]}
+ */
+function collectDependencyKeys(obj) {
+	/** @type {Set<string>} */
+	const keys = new Set();
+	(function walk(node) {
+		if (node && typeof node === "object" && !Array.isArray(node)) {
+			if (node.dependencies && typeof node.dependencies === "object") {
+				for (const key of Object.keys(node.dependencies)) {
+					keys.add(key);
+				}
+			}
+			for (const value of Object.values(node)) {
+				walk(value);
+			}
+		}
+	})(obj);
+	return [...keys];
 }
 
 function calculateNodeModulesSize() {
