@@ -33,6 +33,8 @@ const execAsync = promisify(exec);
 const gzipAsync = promisify(gzip);
 const brotliAsync = promisify(brotliCompress);
 
+const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
+
 const resultCaptions = {
 	sizeMinified: "minified",
 	sizeMinifiedGzipped: "minified + gzip",
@@ -807,8 +809,6 @@ async function filesInDir(dir) {
 		.filter((entry) => entry.isFile())
 		.map((entry) => join(entry.parentPath, entry.name));
 }
-
-const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
 
 /**
  * @param {string} str
