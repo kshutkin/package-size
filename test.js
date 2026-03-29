@@ -33,7 +33,7 @@ for (const [suiteName, suiteTestCases] of Object.entries(tests)) {
                 } catch (e) {
                     result = /** @type {cd.ExecException} */(e);
                 }
-                
+
                 if (args.update) {
                     // @ts-ignore
                     testCase.exitCode = result?.code;
@@ -71,10 +71,11 @@ function writeTestCases() {
 }
 
 /**
- * @param {string} str 
+ * @param {string} str
  */
 function clean(str) {
-    let result = str.replace(/\s+/g, ' ').trim();
+    let result = str.replace(/^npm warn .*$/gm, '');
+    result = result.replace(/\s+/g, ' ').trim();
     result = result.replaceAll(__dirname, '<dirname>');
     return result;
 }
