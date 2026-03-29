@@ -673,7 +673,7 @@ async function getCliArgs() {
 			helpSections: {
 				examples: {
 					title: "Examples",
-					text: ["npx pkgsz lodash", "npx pkgsz lodash 4.17.21"],
+					text: ["npx pkgsz lodash", "npx pkgsz lodash 4.17.21", "npx pkgsz lodash@4.17.21"],
 				},
 			},
 		},
@@ -685,9 +685,21 @@ async function getCliArgs() {
 		process.exit(1);
 	}
 
+	let pkgName = argv.parameters.packageName;
+	let pkgVersion = argv.parameters.version;
+
+	// Support pkgName@version syntax (e.g., lodash@4.17.21 or @scope/name@1.0.0)
+	if (!pkgVersion && pkgName) {
+		const atIndex = pkgName.indexOf('@', pkgName.startsWith('@') ? 1 : 0);
+		if (atIndex > 0) {
+			pkgVersion = pkgName.slice(atIndex + 1);
+			pkgName = pkgName.slice(0, atIndex);
+		}
+	}
+
 	return {
-		version: argv.parameters.version,
-		packageName: argv.parameters.packageName,
+		version: pkgVersion,
+		packageName: pkgName,
 		flags: argv.values,
 	};
 }

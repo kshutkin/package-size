@@ -103,6 +103,20 @@
             "stderr": ""
         }
     ],
+    "@version syntax": [
+        {
+            "name": "scoped esm",
+            "args": "@tstpkgs/basic-esm@0.0.1 -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        },
+        {
+            "name": "scoped cjs",
+            "args": "@tstpkgs/basic-cjs@0.0.1 -jg",
+            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 164, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 35 ], [ \"[unmapped]\", 128 ], [ \"[EOLs]\", 2 ] ] }",
+            "stderr": ""
+        }
+    ],
     "invalid-parameters": [
         {
             "name": "json-interactive",
