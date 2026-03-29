@@ -18,11 +18,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       '@niceties/node-parseargs-plus':
-        specifier: ^0.5.0
-        version: 0.5.0
-      jsonata:
-        specifier: 2.0.6
-        version: 2.0.6
+        specifier: ^0.5.1
+        version: 0.5.1
       pkgbld:
         specifier: ^1.33.1
         version: 1.33.1(typescript@5.5.3)
@@ -35,9 +32,6 @@ importers:
       source-map-explorer:
         specifier: 2.5.3
         version: 2.5.3
-      terminal-columns:
-        specifier: 1.4.1
-        version: 1.4.1
     devDependencies:
       '@biomejs/biome':
         specifier: 1.9.4
@@ -249,8 +243,8 @@ packages:
     resolution: {integrity: sha512-taqDVn4TRCh3j5QJQNlWKE9MSHxGh7nr9zE8SkdHMvsijp6Vx6qd3XYSV7bF7nnYYC/JYjJILxfqDeEUeEjtfQ==}
     engines: {node: '>=15'}
 
-  '@niceties/node-parseargs-plus@0.5.0':
-    resolution: {integrity: sha512-dov7B2hsAn3D2n5Wuqb+5W+rKeENXrcSr3rtNFUnRDdWtu0dIEZR72LPZg3CyTp+7NZ4q0EdLS8smoEGWgqpJg==}
+  '@niceties/node-parseargs-plus@0.5.1':
+    resolution: {integrity: sha512-D4r9IJSxFxCB/60TJT4J5OI8+G8P9LLxPv2OaS3FNmM4bffCsJFvvX1uF4wXzf3QuqorsukBE8MbilHiVAVhJg==}
     engines: {node: '>=18.3.0'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -1650,7 +1644,7 @@ snapshots:
     dependencies:
       '@niceties/ansi': 1.1.2
 
-  '@niceties/node-parseargs-plus@0.5.0':
+  '@niceties/node-parseargs-plus@0.5.1':
     dependencies:
       '@niceties/ansi': 1.1.2
 

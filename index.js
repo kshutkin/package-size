@@ -26,7 +26,6 @@ import { parameters } from "@niceties/node-parseargs-plus/parameters";
 
 import prompt from "prompts";
 import { readPackageUp } from "read-package-up";
-import terminalColumns from "terminal-columns";
 
 // promisified functions
 const execAsync = promisify(exec);
@@ -198,24 +197,11 @@ function printResults() {
 		return;
 	}
 
-	const options = [
-		{
-			width: "content-width",
-			paddingRight: 4,
-		},
-		{
-			width: "content-width",
-			paddingRight: 4,
-		},
-		{
-			width: "content-width",
-		},
-	];
+	const options = [{ paddingRight: 4 }, { paddingRight: 4 }, {}];
 
 	console.log();
 
-	// @ts-ignore
-	console.log(terminalColumns([...results].map(formatResult), options));
+	console.log(formatColumns([...results].map(formatResult), options));
 
 	if (exportsData.length) {
 		console.log();
@@ -228,17 +214,14 @@ function printResults() {
 			console.log();
 			// @ts-ignore
 			console.log(
-				terminalColumns(
+				formatColumns(
 					exportsData.map((data) => [
 						data.export,
 						data.hasDefaultExport
 							? green("default export")
 							: blue("no default export"),
 					]),
-					[
-						{ width: "content-width", paddingRight: 4 },
-						{ width: "content-width", paddingRight: 4 },
-					],
+					[{ paddingRight: 4 }, { paddingRight: 4 }],
 				),
 			);
 		}
@@ -265,8 +248,7 @@ function printResults() {
 			const sizes = formatSize(size);
 			tableData.push([green(pkgName), sizes[0], sizes[1]]);
 		}
-		// @ts-ignore
-		console.log(terminalColumns(tableData, options));
+		console.log(formatColumns(tableData, options));
 	}
 }
 
@@ -839,6 +821,47 @@ async function filesInDir(dir) {
 	return dirEntries
 		.filter((entry) => entry.isFile())
 		.map((entry) => join(entry.parentPath, entry.name));
+}
+
+const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
+
+/**
+ * @param {string} str
+ */
+function stripAnsi(str) {
+	return str.replace(ansiRegex, "");
+}
+
+/**
+ * @param {string[][]} rows
+ * @param {{ paddingRight?: number }[]} columnOptions
+ */
+function formatColumns(rows, columnOptions) {
+	if (rows.length === 0) return "";
+	const colCount = Math.max(...rows.map((row) => row.length));
+	const colWidths = Array.from({ length: colCount }, (_, colIndex) => {
+		let max = 0;
+		for (const row of rows) {
+			if (colIndex < row.length) {
+				const visible = stripAnsi(row[colIndex]).length;
+				if (visible > max) max = visible;
+			}
+		}
+		return max;
+	});
+	return rows
+		.map((row) =>
+			row
+				.map((cell, colIndex) => {
+					const padding = columnOptions[colIndex]?.paddingRight ?? 0;
+					const visible = stripAnsi(cell).length;
+					const targetWidth = colWidths[colIndex] + padding;
+					return cell + " ".repeat(Math.max(0, targetWidth - visible));
+				})
+				.join("")
+				.trimEnd(),
+		)
+		.join("\n");
 }
 
 /**
