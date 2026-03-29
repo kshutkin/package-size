@@ -51,8 +51,8 @@
         {
             "name": "1mb+",
             "args": "@tstpkgs/1mb -g",
-            "stdout": "node_modules 1.03 MiB (1083005 bytes) node_modules files 5 minified 1.06 MiB (1114143 bytes) Exports: . Composition: @tstpkgs/1mb (self) 1.06 MiB (1114142 bytes) [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/1mb@0.0.1"
+            "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/1mb@0.0.1 node_modules 1.03 MiB (1083005 bytes) node_modules files 5 minified 1.06 MiB (1114143 bytes) Exports: . Composition: @tstpkgs/1mb (self) 1.06 MiB (1114142 bytes) [EOLs] 2 bytes",
+            "stderr": ""
         }
     ],
     "scripts": [
@@ -81,26 +81,26 @@
         {
             "name": "esm",
             "args": "@tstpkgs/basic-esm -bg",
-            "stdout": "node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/basic-esm@0.0.1"
+            "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/basic-esm@0.0.1 node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
+            "stderr": ""
         },
         {
             "name": "several-exports-cjs",
             "args": "@tstpkgs/subpath-exports-cjs -bg",
-            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building root package export node_modules 1.82 KiB (1864 bytes) node_modules files 6 minified 164 bytes minified + brotli 125 bytes Exports: . (default export) Composition: @tstpkgs/subpath-exports-cjs (self) 35 bytes [unmapped] 128 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/subpath-exports-cjs@0.0.1"
+            "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building root package export Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-cjs@0.0.1 node_modules 1.82 KiB (1864 bytes) node_modules files 6 minified 164 bytes minified + brotli 125 bytes Exports: . (default export) Composition: @tstpkgs/subpath-exports-cjs (self) 35 bytes [unmapped] 128 bytes [EOLs] 2 bytes",
+            "stderr": ""
         },
         {
             "name": "several-exports-esm",
             "args": "@tstpkgs/subpath-exports-esm -bg",
-            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building root package export node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 30 bytes minified + brotli 34 bytes Exports: . Composition: @tstpkgs/subpath-exports-esm (self) 29 bytes [EOLs] 2 bytes",
-            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/subpath-exports-esm@0.0.1"
+            "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building root package export Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-esm@0.0.1 node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 30 bytes minified + brotli 34 bytes Exports: . Composition: @tstpkgs/subpath-exports-esm (self) 29 bytes [EOLs] 2 bytes",
+            "stderr": ""
         },
         {
             "name": "several-exports-esm 2",
             "args": "@tstpkgs/subpath-exports-esm -bg -e=./second -e=.",
-            "stdout": "Found subpath exports: ., ./second, ./package.json Note: Building subpath exports: second, . node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 61 bytes minified + brotli 69 bytes Exports: second no default export . no default export Composition: @tstpkgs/subpath-exports-esm (self) 59 bytes [EOLs] 4 bytes",
-            "stderr": "- Creating temporary directories... - Installing package... - Resolving package.json... - Resolving exports... - Checking for default export... - Checking for default export... - Building package... - Exploring sourcemaps... - Pruning package... - Calculating sizes / finalizing... ✔ Package: @tstpkgs/subpath-exports-esm@0.0.1"
+            "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building subpath exports: second, . Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-esm@0.0.1 node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 61 bytes minified + brotli 69 bytes Exports: second no default export . no default export Composition: @tstpkgs/subpath-exports-esm (self) 59 bytes [EOLs] 4 bytes",
+            "stderr": ""
         }
     ],
     "invalid-parameters": [
