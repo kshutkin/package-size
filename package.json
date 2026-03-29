@@ -1,11 +1,18 @@
 {
 	"type": "module",
-	"version": "0.12.3",
+	"version": "0.13.0",
 	"name": "pkgsz",
 	"description": "Get the size of an npm package",
 	"license": "MIT",
 	"author": "Konstantin Shutkin",
-	"keywords": ["npm", "package", "size", "cli", "tool", "bundle"],
+	"keywords": [
+		"npm",
+		"package",
+		"size",
+		"cli",
+		"tool",
+		"bundle"
+	],
 	"bin": "index.js",
 	"readme": "README.md",
 	"scripts": {

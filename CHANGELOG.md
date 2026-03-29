@@ -1,5 +1,12 @@
 # pkgsz
 
+## 0.13.0
+
+### Minor Changes
+
+- 7aa1e6f: upgrade and replace libraries
+- 851b9f5: added extended parameter@version parsing
+
 ## 0.12.3
 
 ### Patch Changes
