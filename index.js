@@ -32,6 +32,8 @@ import { readPackageUp } from "read-package-up";
 const execAsync = promisify(exec);
 const gzipAsync = promisify(gzip);
 const brotliAsync = promisify(brotliCompress);
+const smeBin = fileURLToPath(import.meta.resolve("source-map-explorer/bin/cli.js"));
+const pkgbldBin = fileURLToPath(import.meta.resolve("pkgbld/index.js"));
 
 const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
 
@@ -307,7 +309,7 @@ function calculateDistSize() {
 async function exploreSourcemaps() {
 	return wrapWithLogger(async () => {
 		const result = await execEx(
-			"npx source-map-explorer dist/**/*.mjs --json",
+			`"${process.execPath}" "${smeBin}" dist/**/*.mjs --json`,
 			{ cwd: dirName },
 		);
 		const json = JSON.parse(result);
@@ -345,7 +347,7 @@ async function exploreSourcemaps() {
 
 async function prunePackage() {
 	return wrapWithLogger(async () => {
-		await execEx("npx pkgbld prune --removeSourcemaps", { cwd: dirName });
+		await execEx(`"${process.execPath}" "${pkgbldBin}" prune --removeSourcemaps`, { cwd: dirName });
 	}, "Pruning package");
 }
 
@@ -404,7 +406,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 	}, "Building package");
 
 	function getCliString() {
-		return `npx pkgbld --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --remove-legal-comments --includeExternals${dependencies ? `=${dependencies.join(",")}` : ""}`;
+		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --remove-legal-comments --includeExternals${dependencies ? `=${dependencies.join(",")}` : ""}`;
 	}
 }
 
@@ -473,7 +475,7 @@ async function hasDefaultExport(importName) {
 			);
 
 			const errors = await execEx(
-				"npx pkgbld --no-ts-config --no-update-package-json --formats=es --includeExternals",
+				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es --includeExternals`,
 				{ cwd: dirName },
 				true,
 				false,

@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  source-map@^0.7.3: 0.7.4
+
 importers:
 
   .:
@@ -29,6 +32,9 @@ importers:
       read-package-up:
         specifier: 12.0.0
         version: 12.0.0
+      source-map:
+        specifier: 0.7.4
+        version: 0.7.4
       source-map-explorer:
         specifier: 2.5.3
         version: 2.5.3
