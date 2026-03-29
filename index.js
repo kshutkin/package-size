@@ -17,13 +17,13 @@ import { promisify } from "node:util";
 import { constants, brotliCompress, gzip } from "node:zlib";
 // 3rd party imports
 import "@niceties/draftlog-appender";
+import { blue, cyan, gray, green, underline, yellow } from "@niceties/ansi";
 import { createLogger as createNicetiesLogger } from "@niceties/logger";
 import { parseArgsPlus } from "@niceties/node-parseargs-plus";
 import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
 import { help } from "@niceties/node-parseargs-plus/help";
 import { parameters } from "@niceties/node-parseargs-plus/parameters";
 import jsonata from "jsonata";
-import kleur from "kleur";
 import prompt from "prompts";
 import { readPackageUp } from "read-package-up";
 import terminalColumns from "terminal-columns";
@@ -119,9 +119,7 @@ await prunePackage();
 
 await calculateDistSize();
 
-logger.succeed(
-	`Package: ${kleur.green(packageName)}@${kleur.blue(packageVersion)}`,
-);
+logger.succeed(`Package: ${green(packageName)}@${blue(packageVersion)}`);
 
 exitAndReport(0);
 
@@ -223,10 +221,10 @@ function printResults() {
 		console.log();
 		if (exportsData.length === 1) {
 			console.log(
-				`Exports:${` ${exportsData[0].export} ${exportsData[0].hasDefaultExport ? kleur.grey("(default export)") : ""}`}`,
+				`Exports:${` ${exportsData[0].export} ${exportsData[0].hasDefaultExport ? gray("(default export)") : ""}`}`,
 			);
 		} else {
-			console.log(kleur.underline("Exports:"));
+			console.log(underline("Exports:"));
 			console.log();
 			// @ts-ignore
 			console.log(
@@ -234,8 +232,8 @@ function printResults() {
 					exportsData.map((data) => [
 						data.export,
 						data.hasDefaultExport
-							? kleur.green("default export")
-							: kleur.blue("no default export"),
+							? green("default export")
+							: blue("no default export"),
 					]),
 					[
 						{ width: "content-width", paddingRight: 4 },
@@ -248,7 +246,7 @@ function printResults() {
 
 	if (compositionMap.size) {
 		console.log();
-		console.log(kleur.underline("Composition:"));
+		console.log(underline("Composition:"));
 		console.log();
 		const tableData = [];
 		const data = [...compositionMap.entries()];
@@ -258,14 +256,14 @@ function printResults() {
 		if (firstRow.length) {
 			const sizes = formatSize(firstRow[0][1]);
 			tableData.push([
-				kleur.green(firstRow[0][0]) + kleur.gray(" (self)"),
+				green(firstRow[0][0]) + gray(" (self)"),
 				sizes[0],
 				sizes[1],
 			]);
 		}
 		for (const [pkgName, size] of compositionMapSorted) {
 			const sizes = formatSize(size);
-			tableData.push([kleur.green(pkgName), sizes[0], sizes[1]]);
+			tableData.push([green(pkgName), sizes[0], sizes[1]]);
 		}
 		// @ts-ignore
 		console.log(terminalColumns(tableData, options));
@@ -373,13 +371,11 @@ async function prunePackage() {
 async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 	return wrapWithLogger(async () => {
 		if (pkgExports.length) {
-			logger.log(
-				`Found subpath exports: ${kleur.green(pkgExports.join(", "))}`,
-			);
+			logger.log(`Found subpath exports: ${green(pkgExports.join(", "))}`);
 			logger.log();
 			logger.log(
-				kleur.yellow(
-					`Note: Building ${exportsData.length === 1 && exportsData[0].import === packageName ? "root package export" : `subpath exports: ${exportsData.map((data) => kleur.green(data.export)).join(", ")}`}`,
+				yellow(
+					`Note: Building ${exportsData.length === 1 && exportsData[0].import === packageName ? "root package export" : `subpath exports: ${exportsData.map((data) => green(data.export)).join(", ")}`}`,
 				),
 			);
 			logger.log();
@@ -839,17 +835,14 @@ function formatResult(result) {
  */
 function formatSize(size) {
 	if (size < 1024) {
-		return [`${kleur.cyan(size)} bytes`, ""];
+		return [`${cyan(size)} bytes`, ""];
 	}
 
 	if (size < 1024 * 1024) {
-		return [`${kleur.cyan((size / 1024).toFixed(2))} KiB`, `(${size} bytes)`];
+		return [`${cyan((size / 1024).toFixed(2))} KiB`, `(${size} bytes)`];
 	}
 
-	return [
-		`${kleur.cyan((size / 1024 / 1024).toFixed(2))} MiB`,
-		`(${size} bytes)`,
-	];
+	return [`${cyan((size / 1024 / 1024).toFixed(2))} MiB`, `(${size} bytes)`];
 }
 
 /**

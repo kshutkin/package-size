@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@niceties/ansi':
+        specifier: ^1.1.2
+        version: 1.1.2
       '@niceties/draftlog-appender':
         specifier: ^2.1.1
         version: 2.1.1(@niceties/logger@2.1.1)
@@ -20,9 +23,6 @@ importers:
       jsonata:
         specifier: 2.0.6
         version: 2.0.6
-      kleur:
-        specifier: 4.1.5
-        version: 4.1.5
       pkgbld:
         specifier: ^1.33.1
         version: 1.33.1(typescript@5.5.3)

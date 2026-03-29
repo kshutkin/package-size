@@ -5,14 +5,7 @@
 	"description": "Get the size of an npm package",
 	"license": "MIT",
 	"author": "Konstantin Shutkin",
-	"keywords": [
-		"npm",
-		"package",
-		"size",
-		"cli",
-		"tool",
-		"bundle"
-	],
+	"keywords": ["npm", "package", "size", "cli", "tool", "bundle"],
 	"bin": "index.js",
 	"readme": "README.md",
 	"scripts": {
@@ -29,7 +22,7 @@
 		"@niceties/logger": "^2.1.1",
 		"@niceties/node-parseargs-plus": "^0.5.0",
 		"jsonata": "2.0.6",
-		"kleur": "4.1.5",
+		"@niceties/ansi": "^1.1.2",
 		"pkgbld": "^1.33.1",
 		"prompts": "2.4.2",
 		"read-package-up": "11.0.0",
