@@ -37,7 +37,7 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"source-map@^0.7.3": "0.7.4"
+			"source-map@^0.7.3": "0.7.6"
 		}
 	},
 	"overrides": {
