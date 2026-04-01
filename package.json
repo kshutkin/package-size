@@ -27,7 +27,7 @@
 	"dependencies": {
 		"@niceties/draftlog-appender": "^2.1.1",
 		"@niceties/logger": "^2.1.1",
-		"@niceties/node-parseargs-plus": "^0.5.1",
+		"@niceties/node-parseargs-plus": "^0.6.0",
 		"@niceties/ansi": "^1.1.2",
 		"pkgbld": "^1.36.0",
 		"prompts": "2.4.2",

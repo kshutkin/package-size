@@ -21,8 +21,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       '@niceties/node-parseargs-plus':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.6.0
+        version: 0.6.0
       pkgbld:
         specifier: ^1.36.0
         version: 1.36.0(typescript@5.5.3)
@@ -245,8 +245,8 @@ packages:
     resolution: {integrity: sha512-taqDVn4TRCh3j5QJQNlWKE9MSHxGh7nr9zE8SkdHMvsijp6Vx6qd3XYSV7bF7nnYYC/JYjJILxfqDeEUeEjtfQ==}
     engines: {node: '>=15'}
 
-  '@niceties/node-parseargs-plus@0.5.1':
-    resolution: {integrity: sha512-D4r9IJSxFxCB/60TJT4J5OI8+G8P9LLxPv2OaS3FNmM4bffCsJFvvX1uF4wXzf3QuqorsukBE8MbilHiVAVhJg==}
+  '@niceties/node-parseargs-plus@0.6.0':
+    resolution: {integrity: sha512-wob8hWIyQvF4P7DMYX01ifeSTDnWDW3QUigrKEclnedRZArcnCPi9P7HMM7IKrVfnmhqyJX8nxk/TALClRmI6A==}
     engines: {node: '>=18.3.0'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -793,11 +793,12 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globby@11.1.0:
     resolution: {integrity: sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==}
@@ -1694,7 +1695,7 @@ snapshots:
     dependencies:
       '@niceties/ansi': 1.1.2
 
-  '@niceties/node-parseargs-plus@0.5.1':
+  '@niceties/node-parseargs-plus@0.6.0':
     dependencies:
       '@niceties/ansi': 1.1.2
 
