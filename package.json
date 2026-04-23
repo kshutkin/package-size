@@ -44,7 +44,7 @@
 		"source-map": "0.7.4"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.9",
+		"@biomejs/biome": "2.4.13",
 		"@changesets/cli": "2.27.11",
 		"@types/node": "^20.14.15",
 		"c8": "^10.0.0"
