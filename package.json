@@ -7,6 +7,7 @@
 	"author": "Konstantin Shutkin",
 	"keywords": ["npm", "package", "size", "cli", "tool", "bundle"],
 	"bin": "index.js",
+	"files": ["index.js", "CHANGELOG.md"],
 	"readme": "README.md",
 	"scripts": {
 		"lint": "biome lint index.js",
@@ -23,7 +24,7 @@
 		"@niceties/node-parseargs-plus": "^0.5.1",
 		"@niceties/ansi": "^1.1.2",
 		"pkgbld": "^2.1.0",
-		"pkgprn": "^0.8.0",
+		"pkgprn": "^0.8.4",
 		"prompts": "2.4.2",
 		"read-package-up": "12.0.0",
 		"source-map": "0.7.4",
