@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.14.0
+
+### Minor Changes
+
+- fd0e76b: Update build and pruning dependencies to latest. Reported sizes may change with the updated toolchain. Publish only the CLI, README, changelog, license, and pruned package metadata.
+
 ## 0.13.0
 
 ### Minor Changes
