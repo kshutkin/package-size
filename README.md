@@ -16,7 +16,7 @@ npx pkgsz [flags] <package name> [version]
 
 ## Example
 
-![Demo](./demo.gif)
+![Demo](https://raw.githubusercontent.com/kshutkin/package-size/main/demo.gif)
 
 ## :bulb: Features
 

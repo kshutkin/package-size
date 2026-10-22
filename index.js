@@ -33,7 +33,12 @@ const execAsync = promisify(exec);
 const gzipAsync = promisify(gzip);
 const brotliAsync = promisify(brotliCompress);
 const smeBin = fileURLToPath(import.meta.resolve("source-map-explorer/bin/cli.js"));
-const pkgbldBin = fileURLToPath(import.meta.resolve("pkgbld/index.js"));
+const pkgbldBin = fileURLToPath(
+	new URL("./index.js", import.meta.resolve("pkgbld/package.json")),
+);
+const pkgprnBin = fileURLToPath(
+	new URL("./index.js", import.meta.resolve("pkgprn/package.json")),
+);
 
 const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
 
@@ -347,7 +352,9 @@ async function exploreSourcemaps() {
 
 async function prunePackage() {
 	return wrapWithLogger(async () => {
-		await execEx(`"${process.execPath}" "${pkgbldBin}" prune --removeSourcemaps`, { cwd: dirName });
+		await execEx(`"${process.execPath}" "${pkgprnBin}" --remove-sourcemaps`, {
+			cwd: dirName,
+		});
 	}, "Pruning package");
 }
 
@@ -386,7 +393,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 			.map((data) => data.export)
 			.reduce(
 				(acc, exportName, currentIndex) => {
-					acc[`./${exportName === "." ? "" : String(currentIndex)}`] =
+					acc[exportName === "." ? "." : `./${String(currentIndex)}`] =
 						`./src/${exportName === "." ? "index.js" : `${String(currentIndex)}.mjs`}`;
 					return acc;
 				},
@@ -406,7 +413,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 	}, "Building package");
 
 	function getCliString() {
-		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --remove-legal-comments --includeExternals${dependencies ? `=${dependencies.join(",")}` : ""}`;
+		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --remove-legal-comments --include-externals=${dependencies ? dependencies.join(",") : ""}`;
 	}
 }
 
@@ -475,7 +482,7 @@ async function hasDefaultExport(importName) {
 			);
 
 			const errors = await execEx(
-				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es --includeExternals`,
+				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es --include-externals=`,
 				{ cwd: dirName },
 				true,
 				false,
@@ -900,7 +907,7 @@ async function execEx(
 		}
 		return result[returnStderr ? "stderr" : "stdout"].toString();
 	} catch (/** @type {any} */ e) {
-		throw new Error(e.stderr);
+		throw new Error(e.stderr || e.stdout);
 	}
 }
 

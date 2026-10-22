@@ -14,39 +14,36 @@
 		"bundle"
 	],
 	"bin": "index.js",
+	"files": [
+		"index.js",
+		"CHANGELOG.md"
+	],
 	"readme": "README.md",
 	"scripts": {
 		"lint": "biome lint index.js",
 		"ci:publish": "changeset publish",
-		"prepack": "pkgbld prune",
+		"prepack": "pkgprn",
 		"test": "c8 --src=. --all -r=html -r=text node --env-file=ci.env test.js"
 	},
 	"engines": {
 		"node": ">=20.12.0"
 	},
 	"dependencies": {
+		"@niceties/ansi": "^1.1.2",
 		"@niceties/draftlog-appender": "^2.1.1",
 		"@niceties/logger": "^2.1.1",
-		"@niceties/node-parseargs-plus": "^0.5.1",
-		"@niceties/ansi": "^1.1.2",
-		"pkgbld": "^1.36.0",
+		"@niceties/node-parseargs-plus": "^0.6.0",
+		"pkgbld": "^2.1.0",
+		"pkgprn": "^0.8.4",
 		"prompts": "2.4.2",
 		"read-package-up": "12.0.0",
-		"source-map": "0.7.4",
+		"source-map": "0.8.0",
 		"source-map-explorer": "2.5.3"
 	},
-	"pnpm": {
-		"overrides": {
-			"source-map@^0.7.3": "0.7.4"
-		}
-	},
-	"overrides": {
-		"source-map": "0.7.4"
-	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.9",
-		"@changesets/cli": "2.27.11",
-		"@types/node": "^20.14.15",
-		"c8": "^10.0.0"
+		"@biomejs/biome": "2.6.2",
+		"@changesets/cli": "3.0.3",
+		"@types/node": "^26.6.5",
+		"c8": "^12.0.0"
 	}
 }
