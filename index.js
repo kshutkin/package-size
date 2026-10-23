@@ -323,10 +323,12 @@ async function exploreSourcemaps() {
 					if (result.size === 0) {
 						continue;
 					}
-					const nodeModulesPrefix = "../node_modules/";
+					const nodeModulesSegment = "/node_modules/";
 					let pkgName = key;
-					if (key.startsWith(nodeModulesPrefix)) {
-						const mapped = key.substring(nodeModulesPrefix.length);
+					if (key.startsWith(`..${nodeModulesSegment}`)) {
+						const mapped = key.substring(
+							key.lastIndexOf(nodeModulesSegment) + nodeModulesSegment.length,
+						);
 						const parts = mapped.split("/");
 						pkgName = parts[0];
 						if (parts[0].startsWith("@") && parts.length > 1) {

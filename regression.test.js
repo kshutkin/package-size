@@ -239,3 +239,27 @@ for (const name of ['nested-manifest', '@pkgsz-test/nested-manifest']) {
         assert.deepEqual(result.includedExports, [{ export: '.', defaultExport: false }]);
     });
 }
+
+for (const dependency of ['nested-dependency', '@pkgsz-test/nested-dependency']) {
+    test(`composition attributes nested ${dependency} bytes to the owning package`, async t => {
+        const name = '@pkgsz-test/nested-composition';
+        const fixture = await createFixture(t, {
+            name,
+            type: 'module',
+            main: './index.js',
+            dependencies: { [dependency]: '1.2.3' },
+            bundleDependencies: [dependency],
+        }, {
+            'index.js': `export { child } from ${JSON.stringify(dependency)};`,
+            [`node_modules/${dependency}/package.json`]: JSON.stringify({
+                name: dependency, version: '1.2.3', type: 'module', main: './index.js',
+            }),
+            [`node_modules/${dependency}/index.js`]: 'export const child = "this code belongs to the nested dependency";',
+        });
+        const { stdout, stderr } = await fixture.run(['-jg']);
+        assert.equal(stderr, '');
+        const composition = new Map(JSON.parse(stdout).composition);
+        assert.ok(composition.get(dependency) > 0, `${dependency} must have its own composition entry`);
+        assert.equal(composition.has(name), false, 'a pure reexport must not own dependency bytes');
+    });
+}
