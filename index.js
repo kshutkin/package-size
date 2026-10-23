@@ -106,9 +106,9 @@ calculateNodeModulesSize();
 const { exports, version: packageVersion, deps } = await resolvePackageJson();
 
 if (flags.interactive) {
-	const { selectedExports, selectedDependencies } = await interactiveMode(
-		deps,
-		exports,
+	const { selectedExports, selectedDependencies } = await wrapWithLogger(
+		() => interactiveMode(deps, exports),
+		"Selecting exports and dependencies",
 	);
 	selectedDependencies.push(packageName);
 	exportsData = await getExportsData(selectedExports, selectedDependencies);
@@ -966,7 +966,7 @@ function createLogger() {
 		 */
 		fail(message) {
 			currentText = message;
-			if (quiet) {
+			if (quiet || !nicetiesLogger) {
 				console.error(message);
 				return;
 			}

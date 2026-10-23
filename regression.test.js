@@ -45,6 +45,13 @@ async function createFixture(t, packageJson, files) {
     };
 }
 
+async function promptEnvironment(fixture, answers) {
+    const preload = join(fixture.root, 'prompt-answers.mjs');
+    await writeFile(preload,
+        `import prompt from ${JSON.stringify(import.meta.resolve('prompts'))}; prompt.inject(${JSON.stringify(answers)});`);
+    return { NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}` };
+}
+
 for (const type of ['module', 'commonjs']) {
     test(`subpath-only ${type} build excludes the default-export probe`, async t => {
         const fixture = await createFixture(t, {
@@ -157,12 +164,7 @@ test('interactive mode selects the sole subpath when the root is not exported', 
         type: 'module',
         exports: { './only': './only.js' },
     }, { 'only.js': 'export const foo = 123;' });
-    const preload = join(fixture.root, 'prompt-answers.mjs');
-    await writeFile(preload,
-        `import prompt from ${JSON.stringify(import.meta.resolve('prompts'))}; prompt.inject([[]]);`);
-    const { stdout, stderr } = await fixture.run(['-icg'], {
-        NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}`,
-    });
+    const { stdout, stderr } = await fixture.run(['-icg'], await promptEnvironment(fixture, [[]]));
     assert.equal(stderr, '');
     assert.match(stdout, /Exports: only/);
     assert.match(stdout, /@pkgsz-test\/interactive-subpath-only@1\.2\.3/);
@@ -186,18 +188,38 @@ test('interactive export probes keep excluded native dependencies external', asy
     }, {
         'index.js': 'export { default } from "@pkgsz-test/native-dependency";',
     });
-    const preload = join(fixture.root, 'prompt-answers.mjs');
-    await writeFile(preload,
-        `import prompt from ${JSON.stringify(import.meta.resolve('prompts'))}; prompt.inject([[]]);`);
-    const { stdout, stderr } = await fixture.run(['-icg'], {
-        NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}`,
-    });
+    const { stdout, stderr } = await fixture.run(['-icg'], await promptEnvironment(fixture, [[]]));
     assert.equal(stderr, '');
     assert.match(stdout, /Exports: \. \(default export\)/);
     const dir = await fixture.buildDir();
     const content = await readFile(join(dir, 'dist', 'index.mjs'), 'utf8');
     assert.match(content, /export\{default\}from["']@pkgsz-test\/native-dependency["']/);
 });
+
+for (const [stage, answers] of [['exports', []], ['dependencies', [['.']]]]) {
+    for (const noClean of [false, true]) {
+        test(`cancelling interactive ${stage} respects cleanup (noClean=${noClean})`, async t => {
+            const fixture = await createFixture(t, {
+                name: '@pkgsz-test/cancel-interactive',
+                type: 'module',
+                exports: { '.': './index.js', './other': './other.js' },
+            }, {
+                'index.js': 'export const foo = 123;',
+                'other.js': 'export const other = 456;',
+            });
+            await assert.rejects(fixture.run(noClean ? ['-icg'] : ['-ig'],
+                await promptEnvironment(fixture, answers)), error => {
+                assert.equal(error.code, 1);
+                assert.match(error.stdout + error.stderr, /Selecting exports and dependencies \(failed\)\nCancelled/);
+                assert.doesNotMatch(error.stdout + error.stderr, /at interactiveMode/);
+                return true;
+            });
+            const dirs = (await readdir(fixture.root, { withFileTypes: true }))
+                .filter(entry => entry.isDirectory() && entry.name.startsWith('pkgsz-'));
+            assert.equal(dirs.length, noClean ? 1 : 0);
+        });
+    }
+}
 
 for (const name of ['nested-manifest', '@pkgsz-test/nested-manifest']) {
     test(`reads the owning manifest instead of the nested type marker for ${name}`, async t => {
