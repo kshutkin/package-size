@@ -400,7 +400,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 
 		const command = getCliString();
 
-		await execEx(command, { cwd: dirName }, true);
+		await execBuild(command);
 	}, "Building package");
 
 	function getCliString() {
@@ -472,17 +472,17 @@ async function hasDefaultExport(importName) {
 				`import $index from '${importName}';`,
 			);
 
-			const errors = await execEx(
+			const errors = await execBuild(
 				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es --include-externals=`,
-				{ cwd: dirName },
-				true,
 				false,
 			);
 
 			return !errors.includes('"default" is not exported by');
 		} catch (e) {
-			logger.log(e);
-			return false;
+			if (e instanceof Error && e.message.includes('"default" is not exported by')) {
+				return false;
+			}
+			throw e;
 		}
 	}, "Checking for default export");
 }
@@ -877,6 +877,18 @@ function formatSize(size) {
 	}
 
 	return [`${cyan((size / 1024 / 1024).toFixed(2))} MiB`, `(${size} bytes)`];
+}
+
+/**
+ * @param {string} command
+ * @param {boolean} [debugPrint]
+ */
+async function execBuild(command, debugPrint = true) {
+	const diagnostics = await execEx(command, { cwd: dirName }, true, debugPrint);
+	if (diagnostics.includes("could not be resolved")) {
+		throw new Error(diagnostics.trim());
+	}
+	return diagnostics;
 }
 
 /**

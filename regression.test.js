@@ -75,3 +75,24 @@ for (const type of ['module', 'commonjs']) {
         }).length);
     });
 }
+
+for (const [name, exports, files, args] of [
+    ['missing-legacy-subpath', undefined, { 'index.js': 'export const foo = 123;' }, ['-e', './missing']],
+    ['missing-declared-subpath', { '.': './index.js' }, { 'index.js': 'export const foo = 123;' }, ['-e', './missing']],
+    ['unresolved-transitive-import', undefined, { 'index.js': 'export { foo } from "@pkgsz-test/missing";' }, []],
+]) {
+    test(`rejects ${name} instead of reporting an external stub size`, async t => {
+        const fixture = await createFixture(t, {
+            name: `@pkgsz-test/${name}`,
+            type: 'module',
+            main: './index.js',
+            exports,
+        }, files);
+        await assert.rejects(fixture.run(['-jg', ...args]), error => {
+            assert.equal(error.code, 1);
+            const result = JSON.parse(error.stdout);
+            assert.ok(!result.results.some(({ id }) => id === 'sizeMinified'));
+            return true;
+        });
+    });
+}
