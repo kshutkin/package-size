@@ -170,3 +170,22 @@ test('interactive mode selects the sole subpath when the root is not exported', 
     assert.deepEqual(await readdir(join(dir, 'dist')), ['index.mjs']);
     assert.match(await readFile(join(dir, 'dist', 'index.mjs'), 'utf8'), /foo/);
 });
+
+for (const name of ['nested-manifest', '@pkgsz-test/nested-manifest']) {
+    test(`reads the owning manifest instead of the nested type marker for ${name}`, async t => {
+        const fixture = await createFixture(t, {
+            name,
+            exports: { '.': './dist/esm/index.js', './other': './dist/esm/other.js' },
+        }, {
+            'dist/esm/package.json': '{"type":"module"}',
+            'dist/esm/index.js': 'export const foo = 123;',
+            'dist/esm/other.js': 'export const bar = 456;',
+        });
+        const { stdout, stderr } = await fixture.run(['-jg']);
+        const result = JSON.parse(stdout);
+        assert.equal(stderr, '');
+        assert.deepEqual(result.metadata, { name, version: '1.2.3' });
+        assert.deepEqual(result.exports, ['.', './other']);
+        assert.deepEqual(result.includedExports, [{ export: '.', defaultExport: false }]);
+    });
+}

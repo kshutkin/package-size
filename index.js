@@ -26,7 +26,6 @@ import { readPackageJson } from "@niceties/node-parseargs-plus/package-info";
 import { parameters } from "@niceties/node-parseargs-plus/parameters";
 
 import prompt from "prompts";
-import { readPackageUp } from "read-package-up";
 
 // promisified functions
 const execAsync = promisify(exec);
@@ -494,21 +493,9 @@ async function resolvePackageJson() {
 	try {
 		return await wrapWithLogger(
 			async () => {
-				let path = join(dirName, "node_modules", packageName);
-				try {
-					const url = `console.log(import.meta.resolve(\\"${packageName}\\"));`;
-					const fileUrl = await execEx(`node --input-type=module -e "${url}"`, {
-						cwd: dirName,
-					});
-					path = fileURLToPath(fileUrl);
-				} catch {
-					// A package may expose subpaths without exposing a root entry.
-				}
-				const packageUp = await readPackageUp({ cwd: path });
-				const pkg = packageUp?.packageJson;
-				if (!packageUp?.path.replaceAll("\\", "/").includes(packageName)) {
-					throw new Error(`Cannot find package.json for ${packageName}`);
-				}
+				const pkg = JSON.parse(
+					await readFile(join(dirName, "node_modules", packageName, "package.json"), "utf8"),
+				);
 				const exports = [];
 				if (
 					pkg &&
