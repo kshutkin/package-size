@@ -1,5 +1,15 @@
 # pkgsz
 
+## 0.14.1
+
+### Patch Changes
+
+- 681cc6f: Report fatal errors on stderr in JSON mode without printing incomplete results, and always run cleanup when reporting a failure.
+- 06cd136: Read metadata from the installed package root so nested package.json files cannot hide the owning package's version or exports. Remove the unused read-package-up dependency.
+- d1434b5: Fail when requested exports or their imports cannot be resolved instead of reporting the size of external re-export stubs.
+- 80088dc: Exclude default-export probe entries and output from subpath-only size measurements.
+- ed2d0ee: Resolve metadata for packages without a root export and select the sole available subpath in interactive mode.
+
 ## 0.14.0
 
 ### Minor Changes
