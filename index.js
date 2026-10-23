@@ -111,7 +111,7 @@ if (flags.interactive) {
 		exports,
 	);
 	selectedDependencies.push(packageName);
-	exportsData = await getExportsData(selectedExports);
+	exportsData = await getExportsData(selectedExports, selectedDependencies);
 	await buildPackage(exports, exportsData, selectedDependencies);
 } else {
 	exportsData = await getExportsData(flags.export);
@@ -403,8 +403,13 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 	}, "Building package");
 
 	function getCliString() {
-		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --formats=es --compress=es --remove-legal-comments --include-externals=${dependencies ? dependencies.join(",") : ""}`;
+		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --formats=es --compress=es --remove-legal-comments ${includeExternalsFlag(dependencies)}`;
 	}
+}
+
+/** @param {string[] | undefined} dependencies */
+function includeExternalsFlag(dependencies) {
+	return `--include-externals=${dependencies ? dependencies.join(",") : ""}`;
 }
 
 /**
@@ -428,9 +433,10 @@ function getCode(exportsData) {
 
 /**
  * @param {string[]} exports
+ * @param {string[]} [dependencies]
  * @returns {Promise<{ export: string, import: string, hasDefaultExport: boolean }[]>}
  */
-async function getExportsData(exports) {
+async function getExportsData(exports, dependencies) {
 	return wrapWithLogger(async () => {
 		const packageExports = exports
 			.map((exportName) =>
@@ -451,7 +457,7 @@ async function getExportsData(exports) {
 		for (const packageExport of packageExports) {
 			data.push({
 				...packageExport,
-				hasDefaultExport: await hasDefaultExport(packageExport.import),
+				hasDefaultExport: await hasDefaultExport(packageExport.import, dependencies),
 			});
 		}
 
@@ -461,9 +467,10 @@ async function getExportsData(exports) {
 
 /**
  * @param {string} importName
+ * @param {string[]} [dependencies]
  * @returns {Promise<boolean>}
  */
-async function hasDefaultExport(importName) {
+async function hasDefaultExport(importName, dependencies) {
 	return wrapWithLogger(async () => {
 		try {
 			await writeFile(
@@ -472,7 +479,7 @@ async function hasDefaultExport(importName) {
 			);
 
 			const errors = await execBuild(
-				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es --include-externals=`,
+				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es ${includeExternalsFlag(dependencies)}`,
 				false,
 			);
 

@@ -171,6 +171,34 @@ test('interactive mode selects the sole subpath when the root is not exported', 
     assert.match(await readFile(join(dir, 'dist', 'index.mjs'), 'utf8'), /foo/);
 });
 
+test('interactive export probes keep excluded native dependencies external', async t => {
+    const native = await createFixture(t, {
+        name: '@pkgsz-test/native-dependency', main: './index.cjs',
+    }, {
+        'index.cjs': 'module.exports = require("./binding.node");',
+        'binding.node': Buffer.from([0, 1, 2, 3, 255]),
+    });
+    const fixture = await createFixture(t, {
+        name: '@pkgsz-test/excluded-native',
+        type: 'module',
+        main: './index.js',
+        dependencies: { '@pkgsz-test/native-dependency': `file:${native.tarball}` },
+    }, {
+        'index.js': 'export { default } from "@pkgsz-test/native-dependency";',
+    });
+    const preload = join(fixture.root, 'prompt-answers.mjs');
+    await writeFile(preload,
+        `import prompt from ${JSON.stringify(import.meta.resolve('prompts'))}; prompt.inject([[]]);`);
+    const { stdout, stderr } = await fixture.run(['-icg'], {
+        NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}`,
+    });
+    assert.equal(stderr, '');
+    assert.match(stdout, /Exports: \. \(default export\)/);
+    const dir = await fixture.buildDir();
+    const content = await readFile(join(dir, 'dist', 'index.mjs'), 'utf8');
+    assert.match(content, /export\{default\}from["']@pkgsz-test\/native-dependency["']/);
+});
+
 for (const name of ['nested-manifest', '@pkgsz-test/nested-manifest']) {
     test(`reads the owning manifest instead of the nested type marker for ${name}`, async t => {
         const fixture = await createFixture(t, {
