@@ -734,9 +734,14 @@ function validateExports(exports) {
  * @returns {Promise<never>}
  */
 async function exitAndReport(code) {
-	await Promise.all(deferred);
-	printResults();
-	await Promise.all(cleanup.map((fn) => fn()));
+	try {
+		await Promise.all(deferred);
+		if (code === 0) {
+			printResults();
+		}
+	} finally {
+		await Promise.all(cleanup.map((fn) => fn()));
+	}
 	process.exit(code);
 }
 
@@ -962,7 +967,10 @@ function createLogger() {
 		 */
 		fail(message) {
 			currentText = message;
-			if (quiet) return;
+			if (quiet) {
+				console.error(message);
+				return;
+			}
 			nicetiesLogger?.finish(message, 3);
 			started = false;
 			nicetiesLogger = undefined;

@@ -13,18 +13,6 @@
             "stderr": ""
         },
         {
-            "name": "empty-cjs",
-            "args": "@tstpkgs/empty-cjs -jg",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/empty-cjs\", \"version\": \"<unknown>\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1626, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 4, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 73, \"unit\": \"bytes\" } ], \"composition\": [ [ \"[unmapped]\", 72 ], [ \"[EOLs]\", 2 ] ] }",
-            "stderr": ""
-        },
-        {
-            "name": "empty-esm",
-            "args": "@tstpkgs/empty-cjs -jg",
-            "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/empty-cjs\", \"version\": \"<unknown>\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1626, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 4, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 73, \"unit\": \"bytes\" } ], \"composition\": [ [ \"[unmapped]\", 72 ], [ \"[EOLs]\", 2 ] ] }",
-            "stderr": ""
-        },
-        {
             "name": "shared-cjs",
             "args": "@tstpkgs/top-level-cjs-lib -jg",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-cjs-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8779, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 513, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/intermediate-cjs-lib\", 94 ], [ \"@tstpkgs/dual-subpath-exports-cjs\", 49 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 55 ], [ \"@tstpkgs/top-level-cjs-lib\", 125 ], [ \"[unmapped]\", 189 ], [ \"[EOLs]\", 2 ] ] }",

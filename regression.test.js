@@ -29,10 +29,11 @@ async function createFixture(t, packageJson, files) {
     const tarball = join(root, JSON.parse(stdout)[0].filename);
     return {
         root,
-        async run(args = []) {
+        tarball,
+        async run(args = [], env = {}) {
             return execFileAsync(process.execPath, [
                 cli, packageJson.name, `file:${tarball}`, ...args,
-            ], { env: { ...process.env, TMPDIR: root, TMP: root, TEMP: root } });
+            ], { env: { ...process.env, TMPDIR: root, TMP: root, TEMP: root, ...env } });
         },
         async buildDir() {
             const dirs = (await readdir(root, { withFileTypes: true }))
@@ -80,6 +81,7 @@ for (const [name, exports, files, args] of [
     ['missing-legacy-subpath', undefined, { 'index.js': 'export const foo = 123;' }, ['-e', './missing']],
     ['missing-declared-subpath', { '.': './index.js' }, { 'index.js': 'export const foo = 123;' }, ['-e', './missing']],
     ['unresolved-transitive-import', undefined, { 'index.js': 'export { foo } from "@pkgsz-test/missing";' }, []],
+    ['missing-package-entry', undefined, {}, []],
 ]) {
     test(`rejects ${name} instead of reporting an external stub size`, async t => {
         const fixture = await createFixture(t, {
@@ -90,9 +92,46 @@ for (const [name, exports, files, args] of [
         }, files);
         await assert.rejects(fixture.run(['-jg', ...args]), error => {
             assert.equal(error.code, 1);
-            const result = JSON.parse(error.stdout);
-            assert.ok(!result.results.some(({ id }) => id === 'sizeMinified'));
+            assert.equal(error.stdout, '');
+            assert.match(error.stderr, /could not be resolved/);
             return true;
         });
     });
 }
+
+for (const [name, args, retained] of [
+    ['JSON', ['-jg'], false],
+    ['text', ['-g'], false],
+    ['JSON with cleanup disabled', ['-jgc'], true],
+]) {
+    test(`installation failure in ${name} mode reports the cause and respects cleanup`, async t => {
+        const fixture = await createFixture(t, {
+            name: '@pkgsz-test/install-failure', type: 'module', main: './index.js',
+        }, { 'index.js': 'export const foo = 123;' });
+        await rm(fixture.tarball);
+        await assert.rejects(fixture.run(args), error => {
+            assert.equal(error.code, 1);
+            assert.match(error.stdout + error.stderr, /ENOENT/);
+            assert.doesNotMatch(error.stdout + error.stderr, /ReferenceError/);
+            if (args.includes('-jg') || args.includes('-jgc')) assert.equal(error.stdout, '');
+            return true;
+        });
+        const dirs = (await readdir(fixture.root, { withFileTypes: true }))
+            .filter(entry => entry.isDirectory() && entry.name.startsWith('pkgsz-'));
+        assert.equal(dirs.length, retained ? 1 : 0);
+    });
+}
+
+test('directory creation failure in JSON mode does not access uninitialized results', async t => {
+    const fixture = await createFixture(t, {
+        name: '@pkgsz-test/directory-failure', type: 'module', main: './index.js',
+    }, { 'index.js': 'export const foo = 123;' });
+    await assert.rejects(fixture.run(['-jg'], { TMPDIR: join(fixture.root, 'missing') }), error => {
+        assert.equal(error.code, 1);
+        assert.equal(error.stdout, '');
+        assert.match(error.stderr, /Creating temporary directories \(failed\)/);
+        assert.match(error.stderr, /ENOENT/);
+        assert.doesNotMatch(error.stderr, /ReferenceError/);
+        return true;
+    });
+});
