@@ -1,5 +1,13 @@
 # pkgsz
 
+## 0.14.2
+
+### Patch Changes
+
+- 4281b29: Attribute nested dependency code to its owning package in the composition report instead of counting it as part of its parent package.
+- 6b39a6f: Report interactive cancellation without an uncaught error and clean up the temporary installation unless `--no-clean` is enabled.
+- a79d4ba: Respect interactive dependency selections when checking for default exports so excluded dependencies, including native modules, do not prevent size calculation.
+
 ## 0.14.1
 
 ### Patch Changes
