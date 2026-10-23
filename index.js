@@ -376,29 +376,20 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 			logger.log();
 		}
 
+		const rootIndex = Math.max(0, exportsData.findIndex((data) => data.export === "."));
+		const entries = getCode(exportsData).map((data, index) => ({
+			code: data.code,
+			name: index === rootIndex ? "." : `./${index}`,
+			file: index === rootIndex ? "index.js" : `${index}.mjs`,
+		}));
+
 		await Promise.all(
-			getCode(exportsData).map((data, index) =>
-				writeFile(
-					join(
-						dirName,
-						"src",
-						data.exportName === "." ? "index.js" : `${String(index)}.mjs`,
-					),
-					data.code,
-				),
-			),
+			entries.map((entry) => writeFile(join(dirName, "src", entry.file), entry.code)),
 		);
 
-		packageJson.exports = exportsData
-			.map((data) => data.export)
-			.reduce(
-				(acc, exportName, currentIndex) => {
-					acc[exportName === "." ? "." : `./${String(currentIndex)}`] =
-						`./src/${exportName === "." ? "index.js" : `${String(currentIndex)}.mjs`}`;
-					return acc;
-				},
-				/** @type {Record<string, string>} */ ({}),
-			);
+		packageJson.exports = Object.fromEntries(
+			entries.map((entry) => [entry.name, `./src/${entry.file}`]),
+		);
 
 		packageJson.main = undefined;
 
@@ -413,7 +404,7 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 	}, "Building package");
 
 	function getCliString() {
-		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --no-clean --formats=es --compress=es --remove-legal-comments --include-externals=${dependencies ? dependencies.join(",") : ""}`;
+		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --formats=es --compress=es --remove-legal-comments --include-externals=${dependencies ? dependencies.join(",") : ""}`;
 	}
 }
 
