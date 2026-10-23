@@ -3,7 +3,7 @@ import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { promisify } from 'node:util';
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
@@ -134,4 +134,39 @@ test('directory creation failure in JSON mode does not access uninitialized resu
         assert.doesNotMatch(error.stderr, /ReferenceError/);
         return true;
     });
+});
+
+test('reads metadata for a scoped package without a root export', async t => {
+    const fixture = await createFixture(t, {
+        name: '@pkgsz-test/subpath-only',
+        type: 'module',
+        exports: { './only': './only.js' },
+    }, { 'only.js': 'export const foo = 123;' });
+    const { stdout, stderr } = await fixture.run(['-jg', '-e', './only']);
+    const result = JSON.parse(stdout);
+    assert.equal(stderr, '');
+    assert.deepEqual(result.metadata, { name: '@pkgsz-test/subpath-only', version: '1.2.3' });
+    assert.deepEqual(result.exports, ['./only']);
+    assert.deepEqual(result.includedExports, [{ export: 'only', defaultExport: false }]);
+    assert.ok(result.results.some(({ id, value }) => id === 'sizeMinified' && value > 0));
+});
+
+test('interactive mode selects the sole subpath when the root is not exported', async t => {
+    const fixture = await createFixture(t, {
+        name: '@pkgsz-test/interactive-subpath-only',
+        type: 'module',
+        exports: { './only': './only.js' },
+    }, { 'only.js': 'export const foo = 123;' });
+    const preload = join(fixture.root, 'prompt-answers.mjs');
+    await writeFile(preload,
+        `import prompt from ${JSON.stringify(import.meta.resolve('prompts'))}; prompt.inject([[]]);`);
+    const { stdout, stderr } = await fixture.run(['-icg'], {
+        NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}`,
+    });
+    assert.equal(stderr, '');
+    assert.match(stdout, /Exports: only/);
+    assert.match(stdout, /@pkgsz-test\/interactive-subpath-only@1\.2\.3/);
+    const dir = await fixture.buildDir();
+    assert.deepEqual(await readdir(join(dir, 'dist')), ['index.mjs']);
+    assert.match(await readFile(join(dir, 'dist', 'index.mjs'), 'utf8'), /foo/);
 });

@@ -146,7 +146,7 @@ async function interactiveMode(deps, exports) {
 	logger.stop();
 
 	/** @type {string[]} */
-	let selectedExports = ["."];
+	let selectedExports = exports.length === 1 ? exports : ["."];
 
 	if (exports.length > 1) {
 		const { exports: exportsFromPrompt } = await prompt([
@@ -494,11 +494,16 @@ async function resolvePackageJson() {
 	try {
 		return await wrapWithLogger(
 			async () => {
-				const url = `console.log(import.meta.resolve(\\"${packageName}\\"));`;
-				const fileUrl = await execEx(`node --input-type=module -e "${url}"`, {
-					cwd: dirName,
-				});
-				const path = fileURLToPath(fileUrl);
+				let path = join(dirName, "node_modules", packageName);
+				try {
+					const url = `console.log(import.meta.resolve(\\"${packageName}\\"));`;
+					const fileUrl = await execEx(`node --input-type=module -e "${url}"`, {
+						cwd: dirName,
+					});
+					path = fileURLToPath(fileUrl);
+				} catch {
+					// A package may expose subpaths without exposing a root entry.
+				}
 				const packageUp = await readPackageUp({ cwd: path });
 				const pkg = packageUp?.packageJson;
 				if (!packageUp?.path.replaceAll("\\", "/").includes(packageName)) {
