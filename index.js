@@ -91,7 +91,12 @@ if (flags.json) {
 	logger.makeQuiet();
 }
 
-validateExports(flags.export);
+try {
+	validateExports(flags.export);
+} catch (/** @type {any} */ error) {
+	console.error(error.message);
+	process.exit(1);
+}
 
 logger.log();
 
@@ -167,6 +172,8 @@ async function interactiveMode(deps, exports) {
 
 		selectedExports = exportsFromPrompt;
 	}
+
+	validateExports(selectedExports);
 
 	const { dependencies: selectedDependencies } = await prompt([
 		{
@@ -750,8 +757,7 @@ function validateExports(exports) {
 	}
 
 	if (exportsErrors.length) {
-		console.error(exportsErrors.join("\n"));
-		process.exit(1);
+		throw new Error(exportsErrors.join("\n"));
 	}
 }
 

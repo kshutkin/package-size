@@ -269,6 +269,27 @@ test('interactive mode selects the sole subpath when the root is not exported', 
     assert.match(await readFile(join(dir, 'dist', 'index.mjs'), 'utf8'), /foo/);
 });
 
+for (const noClean of [false, true]) {
+    test(`interactive mode rejects a sole wildcard export (noClean=${noClean})`, async t => {
+        const fixture = await createFixture(t, {
+            name: '@pkgsz-test/wildcard-only',
+            type: 'module',
+            exports: { './*': './*.js' },
+        }, { 'only.js': 'export const foo = 123;' });
+        await assert.rejects(fixture.run(noClean ? ['-icg'] : ['-ig'],
+            await promptEnvironment(fixture, [[]])), error => {
+            assert.equal(error.code, 1);
+            assert.match(error.stdout + error.stderr,
+                /Selecting exports and dependencies \(failed\)\nWildcards are not supported: \.\/\*/);
+            assert.doesNotMatch(error.stdout + error.stderr, /Checking for default export|ENOENT/);
+            return true;
+        });
+        const dirs = (await readdir(fixture.root, { withFileTypes: true }))
+            .filter(entry => entry.isDirectory() && entry.name.startsWith('pkgsz-'));
+        assert.equal(dirs.length, noClean ? 1 : 0);
+    });
+}
+
 test('interactive export probes keep excluded native dependencies external', async t => {
     const native = await createFixture(t, {
         name: '@pkgsz-test/native-dependency', main: './index.cjs',
