@@ -760,6 +760,11 @@ async function exitAndReport(code) {
 	} finally {
 		await Promise.all(cleanup.map((fn) => fn()));
 	}
+	await Promise.all(
+		[process.stdout, process.stderr].map(
+			(stream) => new Promise((resolve) => stream.write("", () => resolve(undefined))),
+		),
+	);
 	process.exit(code);
 }
 

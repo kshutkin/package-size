@@ -65,6 +65,26 @@ test('registry values cannot execute shell commands', async t => {
     await assert.rejects(readFile(marker), { code: 'ENOENT' });
 });
 
+for (const noClean of [false, true]) {
+    test(`large JSON reports are complete when piped (noClean=${noClean})`, async t => {
+        const exports = {
+            '.': './index.js',
+            ...Object.fromEntries(Array.from({ length: 5000 }, (_, index) => [
+                `./subpath-${index}`, './index.js',
+            ])),
+        };
+        const fixture = await createFixture(t, {
+            name: '@pkgsz-test/large-json', type: 'module', exports,
+        }, { 'index.js': 'export const foo = 123;' });
+        const { stdout, stderr } = await fixture.run(noClean ? ['-jgc'] : ['-jg']);
+        assert.equal(stderr, '');
+        assert.ok(stdout.length > 65536);
+        const result = JSON.parse(stdout);
+        assert.deepEqual(result.exports, Object.keys(exports));
+        assert.ok(result.results.some(({ id, value }) => id === 'sizeMinified' && value > 0));
+    });
+}
+
 for (const type of ['module', 'commonjs']) {
     test(`subpath-only ${type} build excludes the default-export probe`, async t => {
         const fixture = await createFixture(t, {
