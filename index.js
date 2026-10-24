@@ -526,12 +526,7 @@ async function resolvePackageJson() {
 				}
 				const version = String(pkg?.version);
 
-				const dependenciesJson = await execEx("npm", ["list", "--all", "--json"], {
-					cwd: dirName,
-				});
-				const dependenciesFullParsed = JSON.parse(dependenciesJson);
-				/** @type {string[]} */
-				const deps = collectDependencyKeys(dependenciesFullParsed);
+				const deps = await resolveDependencies();
 				return { exports, version, deps };
 			},
 			"Resolving package.json",
@@ -539,6 +534,19 @@ async function resolvePackageJson() {
 		);
 	} catch {
 		return { exports: [], version: "<unknown>", deps: [] };
+	}
+}
+
+/** @returns {Promise<string[]>} */
+async function resolveDependencies() {
+	// npm list still returns dependency JSON when unmet peers cause a nonzero exit.
+	const { stdout } = await execFileAsync("npm", ["list", "--all", "--json"], {
+		cwd: dirName,
+	}).catch((error) => error);
+	try {
+		return collectDependencyKeys(JSON.parse(stdout));
+	} catch {
+		return [];
 	}
 }
 

@@ -85,6 +85,69 @@ for (const noClean of [false, true]) {
     });
 }
 
+for (const interactive of [false, true]) {
+    test(`unmet peers do not discard package metadata (interactive=${interactive})`, async t => {
+        const fixture = await createFixture(t, {
+            name: '@pkgsz-test/unmet-peer',
+            type: 'module',
+            exports: { './only': './only.js' },
+            peerDependencies: { '@pkgsz-test/unavailable-peer': '*' },
+        }, { 'only.js': 'export const foo = 123;' });
+        const env = {
+            npm_config_legacy_peer_deps: 'true',
+            ...(interactive ? await promptEnvironment(fixture, [[]]) : {}),
+        };
+        const { stdout, stderr } = await fixture.run(
+            interactive ? ['-ig'] : ['-jg', '-e', './only'], env,
+        );
+        assert.equal(stderr, '');
+        if (interactive) {
+            assert.match(stdout, /@pkgsz-test\/unmet-peer@1\.2\.3/);
+            assert.match(stdout, /Exports: only/);
+        } else {
+            const result = JSON.parse(stdout);
+            assert.deepEqual(result.metadata, { name: '@pkgsz-test/unmet-peer', version: '1.2.3' });
+            assert.deepEqual(result.exports, ['./only']);
+        }
+    });
+}
+
+test('interactive dependency choices survive npm list errors', async t => {
+    const dependency = '@pkgsz-test/installed-dependency';
+    const fixture = await createFixture(t, {
+        name: '@pkgsz-test/partial-dependencies',
+        type: 'module',
+        main: './index.js',
+        dependencies: { [dependency]: '1.2.3' },
+        bundleDependencies: [dependency],
+        peerDependencies: { '@pkgsz-test/unavailable-peer': '*' },
+    }, {
+        'index.js': `export { foo } from '${dependency}';`,
+        [`node_modules/${dependency}/package.json`]: JSON.stringify({
+            name: dependency, version: '1.2.3', type: 'module', main: './index.js',
+        }),
+        [`node_modules/${dependency}/index.js`]: 'export const foo = 123;',
+    });
+    const preload = join(fixture.root, 'check-dependency-choices.mjs');
+    await writeFile(preload, `
+        import assert from 'node:assert/strict';
+        import prompt from ${JSON.stringify(import.meta.resolve('prompts'))};
+        prompt.prompts.multiselect = async ({ choices }) => {
+            assert.ok(choices.some(({ value }) => value === ${JSON.stringify(dependency)}));
+            return [${JSON.stringify(dependency)}];
+        };
+    `);
+    const { stdout, stderr } = await fixture.run(['-icg'], {
+        npm_config_legacy_peer_deps: 'true',
+        NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}`,
+    });
+    assert.equal(stderr, '');
+    assert.match(stdout, /@pkgsz-test\/partial-dependencies@1\.2\.3/);
+    const content = await readFile(join(await fixture.buildDir(), 'dist', 'index.mjs'), 'utf8');
+    assert.match(content, /123/);
+    assert.doesNotMatch(content, /installed-dependency/);
+});
+
 for (const type of ['module', 'commonjs']) {
     test(`subpath-only ${type} build excludes the default-export probe`, async t => {
         const fixture = await createFixture(t, {
