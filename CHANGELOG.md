@@ -1,5 +1,22 @@
 # pkgsz
 
+## 0.15.0
+
+### Minor Changes
+
+- 237fb0d: Update pkgprn to 0.10.0 and require Node.js ^22.22.2, ^24.15.0, or >=26.0.0. Pruning changes can affect packaged files and reported bundle sizes.
+
+### Patch Changes
+
+- 4281b29: Attribute nested dependency code to its owning package in the composition report instead of counting it as part of its parent package.
+- 6b39a6f: Report interactive cancellation without an uncaught error and clean up the temporary installation unless `--no-clean` is enabled.
+- 35a5552: Flush output before exiting so large JSON reports remain complete when piped, including with cleanup disabled.
+- 1e38e5e: Pass subprocess arguments without a shell so registry values cannot execute commands or be split at shell metacharacters.
+- 9711368: Require at least one interactive export selection and reject empty selections before building while respecting cleanup settings.
+- a79d4ba: Respect interactive dependency selections when checking for default exports so excluded dependencies, including native modules, do not prevent size calculation.
+- cae628b: Preserve package versions and exports when dependency inspection fails, and use partial dependency JSON from npm list when peers are unmet.
+- 42930da: Validate interactive export selections before building, including automatically selected wildcard exports, and respect cleanup on validation failures.
+
 ## 0.14.1
 
 ### Patch Changes
