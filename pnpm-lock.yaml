@@ -24,8 +24,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       pkgprn:
-        specifier: ^0.8.4
-        version: 0.8.4
+        specifier: ^0.9.0
+        version: 0.9.0
       prompts:
         specifier: 2.4.2
         version: 2.4.2
@@ -249,10 +249,6 @@ packages:
   '@niceties/logger@2.1.1':
     resolution: {integrity: sha512-taqDVn4TRCh3j5QJQNlWKE9MSHxGh7nr9zE8SkdHMvsijp6Vx6qd3XYSV7bF7nnYYC/JYjJILxfqDeEUeEjtfQ==}
     engines: {node: '>=15'}
-
-  '@niceties/node-parseargs-plus@0.5.1':
-    resolution: {integrity: sha512-D4r9IJSxFxCB/60TJT4J5OI8+G8P9LLxPv2OaS3FNmM4bffCsJFvvX1uF4wXzf3QuqorsukBE8MbilHiVAVhJg==}
-    engines: {node: '>=18.3.0'}
 
   '@niceties/node-parseargs-plus@0.6.0':
     resolution: {integrity: sha512-wob8hWIyQvF4P7DMYX01ifeSTDnWDW3QUigrKEclnedRZArcnCPi9P7HMM7IKrVfnmhqyJX8nxk/TALClRmI6A==}
@@ -725,6 +721,10 @@ packages:
     resolution: {integrity: sha512-Z+8unD6em/MJwyrkWQ2M3wygRGI1+MztbutiNwk1DCuEPXOZRWGjtcMPZYP1exY9iNZMhd7ZOSMQSo9WYtiQRw==}
     hasBin: true
 
+  ignore-walk@9.0.0:
+    resolution: {integrity: sha512-tCBEZV2z2FNpIDl2vrhiWzIHzs4qOAuIDEO85eS02vZ3L1U3P56qpPL8GuGGAijDktAEaq2swMkO/Fmbo7YmfQ==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
+
   import-meta-resolve@4.2.0:
     resolution: {integrity: sha512-Iqv2fzaTQN28s/FwZAoFq0ZSs/7hMAHJVX+w8PZl3cY19Pxk6jFFalxQoIfW2826i/fDLXv8IiEZRIT0lDuWcg==}
 
@@ -888,8 +888,9 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  pkgprn@0.8.4:
-    resolution: {integrity: sha512-47q6iJVTNL85jViUxgvikmsZrViMlEU/+SyOyeM9t4fb1VpiSFl+TutnO5f0+qG86on90cvQMY9FHxWH2a5aVg==}
+  pkgprn@0.9.0:
+    resolution: {integrity: sha512-55eXVYUvhCm0nlwRXkY+aaJHsSjrPOZfKslozSutJIBkIDgqErQHy3j5yjuq//ClbN+XW3zjFB42UB9eML+lsA==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
     hasBin: true
 
   preprocess@3.2.0:
@@ -1312,10 +1313,6 @@ snapshots:
     dependencies:
       '@niceties/ansi': 1.1.2
 
-  '@niceties/node-parseargs-plus@0.5.1':
-    dependencies:
-      '@niceties/ansi': 1.1.2
-
   '@niceties/node-parseargs-plus@0.6.0':
     dependencies:
       '@niceties/ansi': 1.1.2
@@ -1672,6 +1669,10 @@ snapshots:
 
   human-id@4.2.2: {}
 
+  ignore-walk@9.0.0:
+    dependencies:
+      minimatch: 10.2.6
+
   import-meta-resolve@4.2.0: {}
 
   inflight@1.0.6:
@@ -1833,11 +1834,12 @@ snapshots:
       terser: 5.51.2
       type-fest: 5.10.0
 
-  pkgprn@0.8.4:
+  pkgprn@0.9.0:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
       '@niceties/logger': 2.1.1
-      '@niceties/node-parseargs-plus': 0.5.1
+      '@niceties/node-parseargs-plus': 0.6.0
+      ignore-walk: 9.0.0
       minimatch: 10.2.6
 
   preprocess@3.2.0:
