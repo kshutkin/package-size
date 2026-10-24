@@ -52,6 +52,19 @@ async function promptEnvironment(fixture, answers) {
     return { NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}` };
 }
 
+test('registry values cannot execute shell commands', async t => {
+    const fixture = await createFixture(t, {
+        name: '@pkgsz-test/registry-argument', type: 'module', main: './index.js',
+    }, { 'index.js': 'export const foo = 123;' });
+    const marker = join(fixture.root, 'shell-command-ran');
+    try {
+        await fixture.run(['-jg', '--registry', `https://registry.npmjs.org; touch "${marker}"`]);
+    } catch (error) {
+        assert.equal(error.code, 1);
+    }
+    await assert.rejects(readFile(marker), { code: 'ENOENT' });
+});
+
 for (const type of ['module', 'commonjs']) {
     test(`subpath-only ${type} build excludes the default-export probe`, async t => {
         const fixture = await createFixture(t, {

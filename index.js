@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // system imports
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 import {
 	mkdir,
 	mkdtemp,
@@ -28,7 +28,7 @@ import { parameters } from "@niceties/node-parseargs-plus/parameters";
 import prompt from "prompts";
 
 // promisified functions
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const gzipAsync = promisify(gzip);
 const brotliAsync = promisify(brotliCompress);
 const smeBin = fileURLToPath(import.meta.resolve("source-map-explorer/bin/cli.js"));
@@ -313,7 +313,8 @@ function calculateDistSize() {
 async function exploreSourcemaps() {
 	return wrapWithLogger(async () => {
 		const result = await execEx(
-			`"${process.execPath}" "${smeBin}" dist/**/*.mjs --json`,
+			process.execPath,
+			[smeBin, "dist/**/*.mjs", "--json"],
 			{ cwd: dirName },
 		);
 		const json = JSON.parse(result);
@@ -353,7 +354,7 @@ async function exploreSourcemaps() {
 
 async function prunePackage() {
 	return wrapWithLogger(async () => {
-		await execEx(`"${process.execPath}" "${pkgprnBin}" --remove-sourcemaps`, {
+		await execEx(process.execPath, [pkgprnBin, "--remove-sourcemaps"], {
 			cwd: dirName,
 		});
 	}, "Pruning package");
@@ -399,14 +400,16 @@ async function buildPackage(pkgExports, exportsData, dependencies = undefined) {
 			JSON.stringify(packageJson, null, 2),
 		);
 
-		const command = getCliString();
-
-		await execBuild(command);
+		await execBuild([
+			"--sourcemaps=es",
+			"--no-ts-config",
+			"--no-update-package-json",
+			"--formats=es",
+			"--compress=es",
+			"--remove-legal-comments",
+			includeExternalsFlag(dependencies),
+		]);
 	}, "Building package");
-
-	function getCliString() {
-		return `"${process.execPath}" "${pkgbldBin}" --sourcemaps=es --no-ts-config --no-update-package-json --formats=es --compress=es --remove-legal-comments ${includeExternalsFlag(dependencies)}`;
-	}
 }
 
 /** @param {string[] | undefined} dependencies */
@@ -481,7 +484,12 @@ async function hasDefaultExport(importName, dependencies) {
 			);
 
 			const errors = await execBuild(
-				`"${process.execPath}" "${pkgbldBin}" --no-ts-config --no-update-package-json --formats=es ${includeExternalsFlag(dependencies)}`,
+				[
+					"--no-ts-config",
+					"--no-update-package-json",
+					"--formats=es",
+					includeExternalsFlag(dependencies),
+				],
 				false,
 			);
 
@@ -518,7 +526,7 @@ async function resolvePackageJson() {
 				}
 				const version = String(pkg?.version);
 
-				const dependenciesJson = await execEx("npm list --all --json", {
+				const dependenciesJson = await execEx("npm", ["list", "--all", "--json"], {
 					cwd: dirName,
 				});
 				const dependenciesFullParsed = JSON.parse(dependenciesJson);
@@ -593,7 +601,16 @@ function installPackage() {
 		);
 
 		await execEx(
-			`npm i --no-audit --no-fund --no-update-notifier --no-progress ${flags.enableScripts ? "" : "--ignore-scripts"} ${flags.registry ? `--registry=${flags.registry}` : ""}`,
+			"npm",
+			[
+				"i",
+				"--no-audit",
+				"--no-fund",
+				"--no-update-notifier",
+				"--no-progress",
+				...(flags.enableScripts ? [] : ["--ignore-scripts"]),
+				...(flags.registry ? [`--registry=${flags.registry}`] : []),
+			],
 			{ cwd: dirName },
 		);
 	}, "Installing package");
@@ -886,11 +903,17 @@ function formatSize(size) {
 }
 
 /**
- * @param {string} command
+ * @param {string[]} args
  * @param {boolean} [debugPrint]
  */
-async function execBuild(command, debugPrint = true) {
-	const diagnostics = await execEx(command, { cwd: dirName }, true, debugPrint);
+async function execBuild(args, debugPrint = true) {
+	const diagnostics = await execEx(
+		process.execPath,
+		[pkgbldBin, ...args],
+		{ cwd: dirName },
+		true,
+		debugPrint,
+	);
 	if (diagnostics.includes("could not be resolved")) {
 		throw new Error(diagnostics.trim());
 	}
@@ -898,19 +921,21 @@ async function execBuild(command, debugPrint = true) {
 }
 
 /**
- * @param {string} command
- * @param {import('node:child_process').ExecOptions} options
+ * @param {string} file
+ * @param {string[]} args
+ * @param {import('node:child_process').ExecFileOptions} options
  * @param {boolean} [returnStderr]
  * @param {boolean} [debugPrint]
  */
 async function execEx(
-	command,
+	file,
+	args,
 	options,
 	returnStderr = false,
 	debugPrint = true,
 ) {
 	try {
-		const result = await execAsync(command, options);
+		const result = await execFileAsync(file, args, options);
 		if (debugPrint && result.stderr) {
 			logger.log(result.stderr);
 		}
