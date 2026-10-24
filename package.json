@@ -26,7 +26,7 @@
 		"test": "c8 --src=. --all -r=html -r=text node --env-file=ci.env --test test.js regression.test.js"
 	},
 	"engines": {
-		"node": ">=20.12.0"
+		"node": "^22.22.2 || ^24.15.0 || >=26.0.0"
 	},
 	"dependencies": {
 		"@niceties/ansi": "^1.1.2",
@@ -34,7 +34,7 @@
 		"@niceties/logger": "^2.1.1",
 		"@niceties/node-parseargs-plus": "^0.6.0",
 		"pkgbld": "^2.1.0",
-		"pkgprn": "^0.8.4",
+		"pkgprn": "^0.10.0",
 		"prompts": "2.4.2",
 		"source-map": "0.8.0",
 		"source-map-explorer": "2.5.3"
