@@ -158,6 +158,7 @@ async function interactiveMode(deps, exports) {
 				type: "multiselect",
 				name: "exports",
 				message: "Which subpaths do you want to reexport?",
+				min: 1,
 				choices: exports.map((exportName) => ({
 					title: exportName,
 					value: exportName,
@@ -746,6 +747,10 @@ async function getCliArgs() {
 function validateExports(exports) {
 	/**@type {string[]} */
 	const exportsErrors = [];
+
+	if (exports.length === 0) {
+		exportsErrors.push("Select at least one export");
+	}
 
 	for (const exportName of exports) {
 		if (exportName.includes("*")) {

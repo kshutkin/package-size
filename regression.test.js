@@ -290,6 +290,30 @@ for (const noClean of [false, true]) {
     });
 }
 
+for (const noClean of [false, true]) {
+    test(`interactive mode rejects an empty export selection (noClean=${noClean})`, async t => {
+        const fixture = await createFixture(t, {
+            name: '@pkgsz-test/empty-selection',
+            type: 'module',
+            exports: { '.': './index.js', './other': './other.js' },
+        }, {
+            'index.js': 'export const foo = 123;',
+            'other.js': 'export const other = 456;',
+        });
+        await assert.rejects(fixture.run(noClean ? ['-icg'] : ['-ig'],
+            await promptEnvironment(fixture, [[], []])), error => {
+            assert.equal(error.code, 1);
+            assert.match(error.stdout + error.stderr,
+                /Selecting exports and dependencies \(failed\)\nSelect at least one export/);
+            assert.doesNotMatch(error.stdout + error.stderr, /Building package|BuildEntryError/);
+            return true;
+        });
+        const dirs = (await readdir(fixture.root, { withFileTypes: true }))
+            .filter(entry => entry.isDirectory() && entry.name.startsWith('pkgsz-'));
+        assert.equal(dirs.length, noClean ? 1 : 0);
+    });
+}
+
 test('interactive export probes keep excluded native dependencies external', async t => {
     const native = await createFixture(t, {
         name: '@pkgsz-test/native-dependency', main: './index.cjs',
