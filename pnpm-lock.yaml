@@ -22,7 +22,7 @@ importers:
         version: 0.6.0
       pkgbld:
         specifier: ^2.1.0
-        version: 2.1.0
+        version: 2.1.1
       pkgprn:
         specifier: ^0.10.0
         version: 0.10.0
@@ -883,8 +883,8 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
-  pkgbld@2.1.0:
-    resolution: {integrity: sha512-0D0Ju/A88NlG6dmOJxKCqebNFH/UPv8dC+CxNBRC0uHbSEFggiYvNbp6ly4QNiSIEn3R90KoMF/2vLRpWq+KgQ==}
+  pkgbld@2.1.1:
+    resolution: {integrity: sha512-O1wjxTZYk/JFdrViUc6wR3YweCkMf3+uQjbG+g8aif1hemU0+lyRJ5eDGBRSv4iZj7daQJQojEwZwnBDQQzyaA==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -1812,7 +1812,7 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  pkgbld@2.1.0:
+  pkgbld@2.1.1:
     dependencies:
       '@niceties/ansi': 1.1.2
       '@niceties/draftlog-appender': 2.1.1(@niceties/logger@2.1.1)
