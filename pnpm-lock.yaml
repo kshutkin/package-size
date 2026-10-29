@@ -24,8 +24,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       pkgprn:
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: ^0.11.0
+        version: 0.11.0
       prompts:
         specifier: 2.4.2
         version: 2.4.2
@@ -192,6 +192,9 @@ packages:
   '@clack/prompts@1.8.1':
     resolution: {integrity: sha512-dlT1m5e/0yUL0kRNcQn7yGLVThkgbB0Ga/1AmfDDC/8ik6AIiSf2QLQO2zPYvefsHP0aFgxO93cVLCCfDp7kzQ==}
     engines: {node: '>= 20.12.0'}
+
+  '@isaacs/nonrecursive-glob-match@1.0.3':
+    resolution: {integrity: sha512-SI7kyKHq4XXDRozw+r9GlRZkia1ZkFrpLW98r2IC2Bpr8YkFGE3fvjzmxCG0x78A++69HmDNrDvSMYBZmHGpKA==}
 
   '@istanbuljs/schema@0.1.6':
     resolution: {integrity: sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw==}
@@ -817,6 +820,10 @@ packages:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
 
+  minimatch@11.0.3:
+    resolution: {integrity: sha512-iny/40PEGkNJQ5/Pv6z3nm6FbRAby32GeZRjCUJk2WnNDbgPSTcdI+DDvLqsgBdD4cD5sMtMheqPPnehCCa8Nw==}
+    engines: {node: 18 || 20 || >=22}
+
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
 
@@ -888,8 +895,8 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  pkgprn@0.10.0:
-    resolution: {integrity: sha512-cJSEds+xMRmwtJN0LOjY4OQUaDvf18oFQgLWXUvW4LI/NgMer76SfnuqtecUObC7LnWIx6kVBMF6e5HlkdJivA==}
+  pkgprn@0.11.0:
+    resolution: {integrity: sha512-GAEXV0LwNxAnSEr/XQDOlzClhMFkGv2QU7ZHiakF49CENRCkeDQcq2UuHOhhtpy6kglLGL/jDcP/iCZjC6Q+5w==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
     hasBin: true
 
@@ -1257,6 +1264,8 @@ snapshots:
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
+
+  '@isaacs/nonrecursive-glob-match@1.0.3': {}
 
   '@istanbuljs/schema@0.1.6': {}
 
@@ -1756,6 +1765,11 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.12
 
+  minimatch@11.0.3:
+    dependencies:
+      '@isaacs/nonrecursive-glob-match': 1.0.3
+      brace-expansion: 5.0.12
+
   minimatch@3.1.5:
     dependencies:
       brace-expansion: 1.1.21
@@ -1834,13 +1848,13 @@ snapshots:
       terser: 5.51.2
       type-fest: 5.10.0
 
-  pkgprn@0.10.0:
+  pkgprn@0.11.0:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
       '@niceties/logger': 2.1.1
       '@niceties/node-parseargs-plus': 0.6.0
       ignore-walk: 9.0.0
-      minimatch: 10.2.6
+      minimatch: 11.0.3
 
   preprocess@3.2.0:
     dependencies:
