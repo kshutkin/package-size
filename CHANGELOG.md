@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.16.1
+
+### Patch Changes
+
+- 151e759: Remove emoji markers from README headings.
+
 ## 0.16.0
 
 ### Minor Changes
