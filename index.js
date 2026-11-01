@@ -19,12 +19,12 @@ import { constants, brotliCompress, gzip } from "node:zlib";
 import "@niceties/draftlog-appender";
 import {
 	blue,
+	bold,
 	cyan,
 	gray,
 	green,
 	red,
 	redBright,
-	underline,
 	yellow,
 } from "@niceties/ansi";
 import { createLogger as createNicetiesLogger } from "@niceties/logger";
@@ -266,10 +266,10 @@ function printResults() {
 		console.log();
 		if (exportsData.length === 1) {
 			console.log(
-				`Exports:${` ${exportsData[0].export} ${exportsData[0].hasDefaultExport ? gray("(default export)") : ""}`}`,
+				`${bold("Exports:")} ${exportsData[0].export} ${exportsData[0].hasDefaultExport ? gray("(default export)") : ""}`,
 			);
 		} else {
-			console.log(underline("Exports:"));
+			console.log(bold("Exports:"));
 			console.log();
 			console.log(
 				formatColumns(
@@ -287,7 +287,7 @@ function printResults() {
 
 	if (compositionMap.size) {
 		console.log();
-		console.log(underline("Composition:"));
+		console.log(bold("Composition:"));
 		console.log();
 		const tableData = [];
 		const data = [...compositionMap.entries()];
@@ -313,7 +313,10 @@ function printResults() {
 /** @param {AuditResult} audit */
 function printAudit(audit) {
 	console.log();
-	console.log(underline("Audit:"));
+	console.log(
+		bold("Audit:") +
+			(flags.audit === "full" ? "" : ` (${cyan("--audit=full")} for details)`),
+	);
 	if (audit.status === "error") {
 		console.log(yellow(`Unavailable: ${audit.error}`));
 		return;

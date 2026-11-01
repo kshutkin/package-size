@@ -207,12 +207,14 @@ for (const transitive of [false, true]) {
         const text = await f.run(['-g', '--audit=full', '--audit-registry', audit.url]);
         assert.equal(text.code, 0, text.stderr + text.stdout);
         assert.match(text.stdout, /Audit:/);
+        assert.doesNotMatch(text.stdout, /--audit=full for details/);
         assert.match(text.stdout, /2 unique advisories/);
         assert.match(text.stdout, /https:\/\/example.com\/advisories\/12345/);
         assert.match(text.stdout, transitive ? /high\s+dependency/ : /high\s+target/);
         for (const mode of [[], ['--audit=summary']]) {
             const text = await f.run(['-g', ...mode, '--audit-registry', audit.url]);
             assert.equal(text.code, 0, text.stderr + text.stdout);
+            assert.match(text.stdout, /Audit: \(--audit=full for details\)/);
             assert.match(text.stdout, /2 unique advisories/);
             assert.match(text.stdout, /high/);
             assert.doesNotMatch(text.stdout, /Test vulnerability|example\.com\/advisories|high\s+(target|dependency)/);
@@ -225,7 +227,7 @@ test('text output reports a clean audit', async t => {
     const f = await fixture(t);
     const result = await f.run(['-g']);
     assert.equal(result.code, 0, result.stderr + result.stdout);
-    assert.match(result.stdout, /Audit:\s+No known vulnerabilities found\./);
+    assert.match(result.stdout, /Audit: \(--audit=full for details\)\s+No known vulnerabilities found\./);
 });
 
 for (const noClean of [false, true]) {
@@ -247,7 +249,7 @@ for (const noClean of [false, true]) {
             const text = await f.run(['-g', '--audit-registry', audit.url]);
             assert.equal(text.code, 1);
             assert.match(text.stdout, /minified/);
-            assert.match(text.stdout, /Audit:\s+Unavailable: npm audit failed/);
+            assert.match(text.stdout, /Audit: \(--audit=full for details\)\s+Unavailable: npm audit failed/);
         }
     });
 }
@@ -339,6 +341,11 @@ test('audit summary colors reflect severity and zero counts', async t => {
     const env = await mockAudit(f, { code: 1, stdout: JSON.stringify(report) });
     const text = await f.run(['-g'], await colorEnvironment(f, env));
     assert.equal(text.code, 0, text.stderr + text.stdout);
+    for (const heading of ['Audit:', 'Exports:', 'Composition:']) {
+        assert.ok(text.stdout.includes(`\x1b[1m${heading}\x1b[22m`), `${heading} must be bold`);
+    }
+    assert.ok(text.stdout.includes('\x1b[36m--audit=full\x1b[39m'));
+    assert.doesNotMatch(text.stdout, /\x1b\[(?:\d+;)*(?:4|21|24)(?:;\d+)*m/);
     for (const [severity, color] of [['info', 36], ['low', 34], ['moderate', 33], ['high', 31], ['critical', 91]]) {
         assert.ok(text.stdout.includes(`\x1b[${color}m1 ${severity}\x1b[39m`), `${severity} must have its severity color`);
     }

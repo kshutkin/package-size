@@ -75,8 +75,9 @@ Disable auditing (auditing is enabled by default).
 
 ### --audit=summary|full
 
-Show a summary by default (`--audit=summary`), or use `--audit=full` to include
-affected packages, advisory titles, and links:
+Show a summary by default (`--audit=summary`), with a `--audit=full` hint on the
+audit heading. Use `--audit=full` to include affected packages, advisory titles,
+and links:
 
 ```bash
 npx pkgsz lodash --audit=full
