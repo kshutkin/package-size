@@ -122,7 +122,7 @@ test('audits by default using npm configuration and forces a lockfile', async t 
     const result = JSON.parse(stdout);
     assert.deepEqual(result.audit, {
         status: 'complete', provider: 'npm', summary: zeroCounts,
-        advisoryCount: 0, vulnerabilities: {},
+        advisoryCount: 0,
     });
     const requests = f.install.auditRequests();
     assert.equal(requests.length, 1);
@@ -167,7 +167,7 @@ test('--audit-registry overrides npm configuration without --registry', async t 
 test('--no-audit skips requests and omits the JSON audit field', async t => {
     const f = await fixture(t);
     const audit = await registry(t, f.packages, { unavailable: true });
-    const result = await f.run(['-jg', '--no-audit', '--audit-registry', audit.url]);
+    const result = await f.run(['-jg', '--no-audit', '--audit=full', '--audit-registry', audit.url]);
     assert.equal(result.code, 0, result.stderr + result.stdout);
     assert.equal(Object.hasOwn(JSON.parse(result.stdout), 'audit'), false);
     assert.equal(f.install.auditRequests().length, 0);
@@ -180,7 +180,7 @@ for (const transitive of [false, true]) {
         const f = await fixture(t, { withDependency: transitive });
         const name = transitive ? dependency : target;
         const audit = await registry(t, f.packages, { advisories: { [name]: [advisory(name), advisory(name, 23456)] } });
-        const args = ['-jg', '--audit-registry', audit.url];
+        const args = ['-jg', '--audit=full', '--audit-registry', audit.url];
         const result = await f.run(args);
         assert.equal(result.code, 0, result.stderr + result.stdout);
         assert.equal(result.stderr, '');
@@ -196,12 +196,28 @@ for (const transitive of [false, true]) {
         }
         assert.ok(report.results.some(({ id, value }) => id === 'sizeMinified' && value > 0));
         assert.deepEqual(await f.buildDirs(), []);
-        const text = await f.run(['-g', '--audit-registry', audit.url]);
+        const summaryJson = await f.run(['-jg', '--audit-registry', audit.url]);
+        assert.equal(summaryJson.code, 0, summaryJson.stderr + summaryJson.stdout);
+        const summary = JSON.parse(summaryJson.stdout).audit;
+        assert.deepEqual(summary.summary, report.audit.summary);
+        assert.equal(summary.advisoryCount, 2);
+        assert.equal(Object.hasOwn(summary, 'vulnerabilities'), false);
+        assert.doesNotMatch(summaryJson.stdout, /Test vulnerability|example\.com\/advisories/);
+
+        const text = await f.run(['-g', '--audit=full', '--audit-registry', audit.url]);
         assert.equal(text.code, 0, text.stderr + text.stdout);
         assert.match(text.stdout, /Audit:/);
         assert.match(text.stdout, /2 unique advisories/);
         assert.match(text.stdout, /https:\/\/example.com\/advisories\/12345/);
         assert.match(text.stdout, transitive ? /high\s+dependency/ : /high\s+target/);
+        for (const mode of [[], ['--audit=summary']]) {
+            const text = await f.run(['-g', ...mode, '--audit-registry', audit.url]);
+            assert.equal(text.code, 0, text.stderr + text.stdout);
+            assert.match(text.stdout, /2 unique advisories/);
+            assert.match(text.stdout, /high/);
+            assert.doesNotMatch(text.stdout, /Test vulnerability|example\.com\/advisories|high\s+(target|dependency)/);
+            assert.doesNotMatch(text.stdout, /\x1b\[/);
+        }
     });
 }
 
@@ -291,12 +307,69 @@ test('large audit JSON reports remain complete when piped', async t => {
         vulnerabilities: { [target]: { name: target, severity: 'high', isDirect: true, via: [detail] } },
         metadata: { vulnerabilities: { ...zeroCounts, high: 1, total: 1 } },
     };
-    const result = await f.run(['-jg'], await mockAudit(f, { code: 1, stdout: JSON.stringify(report) }));
+    const result = await f.run(['-jg', '--audit=full'], await mockAudit(f, { code: 1, stdout: JSON.stringify(report) }));
     assert.equal(result.code, 0, result.stderr);
     assert.ok(result.stdout.length > 2 * 1024 * 1024);
     const output = JSON.parse(result.stdout);
     assert.equal(output.audit.vulnerabilities[target].via[0].title, detail.title);
     assert.equal(output.audit.advisoryCount, 1);
+});
+
+async function colorEnvironment(f, env = {}) {
+    const preload = join(f.root, 'color-support.mjs');
+    // Simulate a color-capable terminal while keeping stdout piped for assertions.
+    await writeFile(preload, 'process.stdout.hasColors = () => true;');
+    return { ...env, NODE_OPTIONS: `${env.NODE_OPTIONS ?? process.env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(preload).href}` };
+}
+
+test('audit summary colors reflect severity and zero counts', async t => {
+    const f = await fixture(t);
+    const severities = ['info', 'low', 'moderate', 'high', 'critical'];
+    const vulnerabilities = Object.fromEntries(severities.map((severity, index) => {
+        const name = `@pkgsz-audit/${severity}`;
+        return [name, {
+            name, severity, isDirect: false,
+            via: [{ source: index + 1, name, severity, title: 'Hidden advisory', url: 'https://example.com/advisory' }],
+        }];
+    }));
+    const report = {
+        auditReportVersion: 2, vulnerabilities,
+        metadata: { vulnerabilities: { info: 1, low: 1, moderate: 1, high: 1, critical: 1, total: 5 } },
+    };
+    const env = await mockAudit(f, { code: 1, stdout: JSON.stringify(report) });
+    const text = await f.run(['-g'], await colorEnvironment(f, env));
+    assert.equal(text.code, 0, text.stderr + text.stdout);
+    for (const [severity, color] of [['info', 36], ['low', 34], ['moderate', 33], ['high', 31], ['critical', 91]]) {
+        assert.ok(text.stdout.includes(`\x1b[${color}m1 ${severity}\x1b[39m`), `${severity} must have its severity color`);
+    }
+    assert.doesNotMatch(text.stdout, /Hidden advisory|example\.com\/advisory|@pkgsz-audit\/critical/);
+
+    const high = await registry(t, f.packages, { advisories: { [target]: [advisory(target)] } });
+    const zeros = await f.run(['-g', '--audit-registry', high.url], await colorEnvironment(f));
+    assert.equal(zeros.code, 0, zeros.stderr + zeros.stdout);
+    assert.ok(zeros.stdout.includes('\x1b[90m0 low\x1b[39m'));
+    assert.ok(zeros.stdout.includes('\x1b[31m1 high\x1b[39m'));
+
+    const json = await f.run(['-jg'], await colorEnvironment(f, env));
+    assert.equal(json.code, 0, json.stderr + json.stdout);
+    assert.doesNotMatch(json.stdout, /\x1b\[/);
+    assert.equal(Object.hasOwn(JSON.parse(json.stdout).audit, 'vulnerabilities'), false);
+});
+
+test('clean audit summary is green on color-capable terminals', async t => {
+    const f = await fixture(t);
+    const result = await f.run(['-g'], await colorEnvironment(f));
+    assert.equal(result.code, 0, result.stderr + result.stdout);
+    assert.ok(result.stdout.includes('\x1b[32mNo known vulnerabilities found.\x1b[39m'));
+});
+
+test('invalid audit mode is rejected before installation', async () => {
+    await assert.rejects(run(process.execPath, [cli, target, '--audit=verbose', '-jg']), error => {
+        assert.equal(error.code, 1);
+        assert.equal(error.stdout, '');
+        assert.equal(error.stderr.trim(), '--audit must be either summary or full');
+        return true;
+    });
 });
 
 test('audit registry arguments cannot execute shell commands', async t => {

@@ -17,7 +17,16 @@ import { promisify } from "node:util";
 import { constants, brotliCompress, gzip } from "node:zlib";
 // 3rd party imports
 import "@niceties/draftlog-appender";
-import { blue, cyan, gray, green, underline, yellow } from "@niceties/ansi";
+import {
+	blue,
+	cyan,
+	gray,
+	green,
+	red,
+	redBright,
+	underline,
+	yellow,
+} from "@niceties/ansi";
 import { createLogger as createNicetiesLogger } from "@niceties/logger";
 import { parseArgsPlus } from "@niceties/node-parseargs-plus";
 import { camelCase } from "@niceties/node-parseargs-plus/camel-case";
@@ -50,6 +59,13 @@ const resultCaptions = {
 };
 
 const auditSeverities = ["info", "low", "moderate", "high", "critical"];
+const auditColors = {
+	info: cyan,
+	low: blue,
+	moderate: yellow,
+	high: red,
+	critical: redBright,
+};
 
 // types
 /** @typedef {'bytes' | 'count'} Unit */
@@ -209,6 +225,15 @@ async function interactiveMode(deps, exports) {
 
 function printResults() {
 	if (flags.json) {
+		const auditOutput =
+			audit?.status === "complete" && flags.audit !== "full"
+				? {
+					status: audit.status,
+					provider: audit.provider,
+					summary: audit.summary,
+					advisoryCount: audit.advisoryCount,
+				}
+				: audit;
 		const result = {
 			metadata: {
 				name: packageName,
@@ -221,7 +246,7 @@ function printResults() {
 			})),
 			results: [...results],
 			composition: [...compositionMap.entries()],
-			...(audit ? { audit } : {}),
+			...(auditOutput ? { audit: auditOutput } : {}),
 		};
 		console.log(JSON.stringify(result, null, 2));
 		return;
@@ -294,17 +319,26 @@ function printAudit(audit) {
 		return;
 	}
 	if (audit.summary.total === 0) {
-		console.log("No known vulnerabilities found.");
+		console.log(green("No known vulnerabilities found."));
 		return;
 	}
+	const highestSeverity =
+		auditSeverities.findLast((severity) => audit.summary[severity] > 0) ?? "info";
 	console.log(
-		`${audit.summary.total} affected packages, ${audit.advisoryCount} unique advisories`,
+		auditColors[highestSeverity](
+			`${audit.summary.total} affected packages, ${audit.advisoryCount} unique advisories`,
+		),
 	);
 	console.log(
 		auditSeverities
-			.map((severity) => `${audit.summary[severity]} ${severity}`)
+			.map((severity) =>
+				(audit.summary[severity] > 0 ? auditColors[severity] : gray)(
+					`${audit.summary[severity]} ${severity}`,
+				),
+			)
 			.join(", "),
 	);
+	if (flags.audit !== "full") return;
 	console.log(
 		formatColumns(
 			Object.entries(audit.vulnerabilities).map(([name, vulnerability]) => [
@@ -845,6 +879,11 @@ async function getCliArgs() {
 					type: "string",
 					description: "Override the npm registry for auditing only",
 				},
+				audit: {
+					type: "string",
+					description: "Audit output: summary or full (default: summary)",
+					default: "summary",
+				},
 				noAudit: {
 					type: "boolean",
 					description: "Do not audit the package for known vulnerabilities",
@@ -903,6 +942,11 @@ async function getCliArgs() {
 		},
 		[help, parameters, camelCase],
 	);
+
+	if (!["summary", "full"].includes(argv.values.audit)) {
+		logger.error("--audit must be either summary or full");
+		process.exit(1);
+	}
 
 	if (argv.values.json && argv.values.interactive) {
 		logger.error("Cannot use --json and --interactive flags together");

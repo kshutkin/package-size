@@ -73,6 +73,19 @@ npx pkgsz lodash --registry https://registry.example.com --audit-registry https:
 
 Disable auditing (auditing is enabled by default).
 
+### --audit=summary|full
+
+Show a summary by default (`--audit=summary`), or use `--audit=full` to include
+affected packages, advisory titles, and links:
+
+```bash
+npx pkgsz lodash --audit=full
+```
+
+The terminal summary is green when no known vulnerabilities are found. Nonzero
+severity counts are cyan (info), blue (low), yellow (moderate), red (high), or
+bright red (critical); zero counts are dimmed. Colors follow terminal support.
+
 Auditing runs in the temporary directory after installation, using the generated
 lockfile. It checks the target package and its resolved production dependency
 tree, including transitive dependencies, independently of selected exports or
@@ -86,9 +99,10 @@ to the selected registry's security endpoints.
 
 With `--json`, an `audit` object contains `status` (`complete` or `error`) and
 `provider` (`npm`). Completed audits include a `summary` of affected packages by
-severity, a unique `advisoryCount`, and npm's `vulnerabilities` details (including
-advisory links, affected ranges, dependency paths, and available fixes). Failed
-audits contain an `error` message. With `--no-audit`, the `audit` field is omitted.
+severity and a unique `advisoryCount`. With `--audit=full`, the object also includes
+npm's `vulnerabilities` details (including advisory links, affected ranges,
+dependency paths, and available fixes). JSON output contains no color codes.
+Failed audits contain an `error` message. With `--no-audit`, the `audit` field is omitted.
 
 ### -s, --enable-scripts
 
