@@ -18,7 +18,7 @@ npx pkgsz [flags] <package name> [version]
 
 ![Demo](https://raw.githubusercontent.com/kshutkin/package-size/main/demo.gif)
 
-## :bulb: Features
+## Features
 
 - Uses rollup to build the package (probably more accurate results in the modern vite world)
 - Reports the statistics regarding node_modules size and minified / gzipped size (brotli compression is optional)
@@ -27,13 +27,13 @@ npx pkgsz [flags] <package name> [version]
 - Audits the installed package and its production dependencies for known vulnerabilities using npm
 - Interactive mode
 
-## :bell: Limitations
+## Limitations
 
 - If you are using something like angular size will be incorrect because this tool does not include the angular compiler (or any other UI framework / library compiler)
 - Only reports sizes in binary units (Kib, Mib, bytes)
 - Installs using `npm install` and not `yarn` / `pnpm` / `bun` etc.
 
-## :key: Options
+## Options
 
 ### -i, --interactive
 
@@ -120,6 +120,6 @@ Show help
 
 Show version
 
-# :information_source: License
+# License
 
 [MIT](https://github.com/kshutkin/package-size/blob/main/LICENSE)
