@@ -78,7 +78,9 @@ async function fixture(t, { withDependency = false } = {}) {
         await writeFile(join(dir, 'package.json'), JSON.stringify(manifest));
         await writeFile(join(dir, 'index.js'), 'export const value = 42;');
         const { stdout } = await run('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', root], { cwd: dir });
-        const tarballFile = join(root, JSON.parse(stdout)[0].filename);
+        // npm 11 returns an array; npm 12 returns an object keyed by package name.
+        const [packed] = Object.values(JSON.parse(stdout));
+        const tarballFile = join(root, packed.filename);
         packages.push({ manifest, tarball: await readFile(tarballFile), tarballFile, tarballPath: `/tarballs/${name.split('/')[1]}.tgz` });
     }
     const install = await registry(t, packages);
@@ -300,7 +302,8 @@ test('large audit JSON reports remain complete when piped', async t => {
 test('audit registry arguments cannot execute shell commands', async t => {
     const f = await fixture(t);
     const marker = join(f.root, 'shell-command-ran');
-    const result = await f.run(['-jg', '--audit-registry', `${f.install.url}; touch "${marker}"`]);
+    // Keep a valid URL authority so npm cannot discard the registry as invalid config.
+    const result = await f.run(['-jg', '--audit-registry', `${f.install.url}/; touch "${marker}"`]);
     assert.equal(result.code, 1);
     assert.equal(JSON.parse(result.stdout).audit.status, 'error');
     await assert.rejects(readFile(marker), { code: 'ENOENT' });

@@ -26,7 +26,9 @@ async function createFixture(t, packageJson, files) {
     const { stdout } = await execFileAsync('npm', [
         'pack', '--ignore-scripts', '--json', '--pack-destination', root,
     ], { cwd: fixture });
-    const tarball = join(root, JSON.parse(stdout)[0].filename);
+    // npm 11 returns an array; npm 12 returns an object keyed by package name.
+    const [packed] = Object.values(JSON.parse(stdout));
+    const tarball = join(root, packed.filename);
     return {
         root,
         tarball,
