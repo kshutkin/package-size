@@ -2,43 +2,43 @@
     "basic": [
         {
             "name": "esm",
-            "args": "@tstpkgs/basic-esm -jg",
+            "args": "@tstpkgs/basic-esm -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "cjs",
-            "args": "@tstpkgs/basic-cjs -jg",
+            "args": "@tstpkgs/basic-cjs -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 164, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 35 ], [ \"[unmapped]\", 128 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "shared-cjs",
-            "args": "@tstpkgs/top-level-cjs-lib -jg",
+            "args": "@tstpkgs/top-level-cjs-lib -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-cjs-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8779, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 513, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/intermediate-cjs-lib\", 94 ], [ \"@tstpkgs/dual-subpath-exports-cjs\", 49 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 55 ], [ \"@tstpkgs/top-level-cjs-lib\", 125 ], [ \"[unmapped]\", 189 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "shared-esm",
-            "args": "@tstpkgs/top-level-esm-lib -jg",
+            "args": "@tstpkgs/top-level-esm-lib -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/top-level-esm-lib\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 8735, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 23, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 116, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/dual-subpath-exports-cjs\", 37 ], [ \"@tstpkgs/dual-subpath-exports-esm\", 78 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "several-exports-cjs",
-            "args": "@tstpkgs/subpath-exports-cjs -jg",
+            "args": "@tstpkgs/subpath-exports-cjs -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/subpath-exports-cjs\", \"version\": \"0.0.1\" }, \"exports\": [ \".\", \"./second\", \"./package.json\" ], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1864, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 164, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/subpath-exports-cjs\", 35 ], [ \"[unmapped]\", 128 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "several-exports-esm",
-            "args": "@tstpkgs/subpath-exports-esm -jg",
+            "args": "@tstpkgs/subpath-exports-esm -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/subpath-exports-esm\", \"version\": \"0.0.1\" }, \"exports\": [ \".\", \"./second\", \"./package.json\" ], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1898, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 30, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/subpath-exports-esm\", 29 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "1mb+",
-            "args": "@tstpkgs/1mb -g",
+            "args": "@tstpkgs/1mb -g --no-audit",
             "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/1mb@0.0.1 node_modules 1.03 MiB (1083005 bytes) node_modules files 5 minified 1.06 MiB (1114143 bytes) Exports: . Composition: @tstpkgs/1mb (self) 1.06 MiB (1114142 bytes) [EOLs] 2 bytes",
             "stderr": ""
         }
@@ -46,13 +46,13 @@
     "scripts": [
         {
             "name": "esm",
-            "args": "@tstpkgs/with-scripts -jg",
+            "args": "@tstpkgs/with-scripts -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/with-scripts\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 3744, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 1029, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/with-scripts\", 1028 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "esm",
-            "args": "@tstpkgs/with-scripts -jgs",
+            "args": "@tstpkgs/with-scripts -jgs --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/with-scripts\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 3744, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 6, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 1029, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/with-scripts\", 1028 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
@@ -60,7 +60,7 @@
     "brotli": [
         {
             "name": "esm",
-            "args": "@tstpkgs/basic-esm -bjg",
+            "args": "@tstpkgs/basic-esm -bjg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" }, { \"id\": \"sizeMinifiedBrotli\", \"value\": 36, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
@@ -68,25 +68,25 @@
     "text-output": [
         {
             "name": "esm",
-            "args": "@tstpkgs/basic-esm -bg",
+            "args": "@tstpkgs/basic-esm -bg --no-audit",
             "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/basic-esm@0.0.1 node_modules 1.65 KiB (1685 bytes) node_modules files 5 minified 32 bytes minified + brotli 36 bytes Exports: . Composition: @tstpkgs/basic-esm (self) 31 bytes [EOLs] 2 bytes",
             "stderr": ""
         },
         {
             "name": "several-exports-cjs",
-            "args": "@tstpkgs/subpath-exports-cjs -bg",
+            "args": "@tstpkgs/subpath-exports-cjs -bg --no-audit",
             "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building root package export Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-cjs@0.0.1 node_modules 1.82 KiB (1864 bytes) node_modules files 6 minified 164 bytes minified + brotli 125 bytes Exports: . (default export) Composition: @tstpkgs/subpath-exports-cjs (self) 35 bytes [unmapped] 128 bytes [EOLs] 2 bytes",
             "stderr": ""
         },
         {
             "name": "several-exports-esm",
-            "args": "@tstpkgs/subpath-exports-esm -bg",
+            "args": "@tstpkgs/subpath-exports-esm -bg --no-audit",
             "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building root package export Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-esm@0.0.1 node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 30 bytes minified + brotli 34 bytes Exports: . Composition: @tstpkgs/subpath-exports-esm (self) 29 bytes [EOLs] 2 bytes",
             "stderr": ""
         },
         {
             "name": "several-exports-esm 2",
-            "args": "@tstpkgs/subpath-exports-esm -bg -e ./second -e .",
+            "args": "@tstpkgs/subpath-exports-esm -bg -e ./second -e . --no-audit",
             "stdout": "Creating temporary directories... Installing package... Resolving package.json... Resolving exports... Checking for default export... Checking for default export... Building package... Found subpath exports: ., ./second, ./package.json Note: Building subpath exports: second, . Exploring sourcemaps... Pruning package... Calculating sizes / finalizing... ✓ Package: @tstpkgs/subpath-exports-esm@0.0.1 node_modules 1.85 KiB (1898 bytes) node_modules files 6 minified 61 bytes minified + brotli 69 bytes Exports: second no default export . no default export Composition: @tstpkgs/subpath-exports-esm (self) 59 bytes [EOLs] 4 bytes",
             "stderr": ""
         }
@@ -94,13 +94,13 @@
     "@version syntax": [
         {
             "name": "scoped esm",
-            "args": "@tstpkgs/basic-esm@0.0.1 -jg",
+            "args": "@tstpkgs/basic-esm@0.0.1 -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-esm\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": false } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1685, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 32, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-esm\", 31 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         },
         {
             "name": "scoped cjs",
-            "args": "@tstpkgs/basic-cjs@0.0.1 -jg",
+            "args": "@tstpkgs/basic-cjs@0.0.1 -jg --no-audit",
             "stdout": "{ \"metadata\": { \"name\": \"@tstpkgs/basic-cjs\", \"version\": \"0.0.1\" }, \"exports\": [], \"includedExports\": [ { \"export\": \".\", \"defaultExport\": true } ], \"results\": [ { \"id\": \"nodeModulesSize\", \"value\": 1657, \"unit\": \"bytes\" }, { \"id\": \"nodeModulesFiles\", \"value\": 5, \"unit\": \"count\" }, { \"id\": \"sizeMinified\", \"value\": 164, \"unit\": \"bytes\" } ], \"composition\": [ [ \"@tstpkgs/basic-cjs\", 35 ], [ \"[unmapped]\", 128 ], [ \"[EOLs]\", 2 ] ] }",
             "stderr": ""
         }
@@ -108,14 +108,14 @@
     "invalid-parameters": [
         {
             "name": "json-interactive",
-            "args": "@tstpkgs/basic-esm -ji",
+            "args": "@tstpkgs/basic-esm -ji --no-audit",
             "stdout": "",
             "stderr": "Cannot use --json and --interactive flags together",
             "exitCode": 1
         },
         {
             "name": "star exports",
-            "args": "@tstpkgs/basic-esm -e *",
+            "args": "@tstpkgs/basic-esm -e * --no-audit",
             "stdout": "",
             "stderr": "Exports must start with a dot: CHANGELOG.md",
             "exitCode": 1

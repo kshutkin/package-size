@@ -49,6 +49,8 @@ const resultCaptions = {
 	nodeModulesFiles: "node_modules files",
 };
 
+const auditSeverities = ["info", "low", "moderate", "high", "critical"];
+
 // types
 /** @typedef {'bytes' | 'count'} Unit */
 /**
@@ -60,6 +62,12 @@ const resultCaptions = {
 
 /**
  * @typedef {('brotli' | 'gzip' | 'none')} CompressionMethod
+ */
+
+/**
+ * @typedef {{ status: 'complete', provider: 'npm', summary: Record<string, number>,
+ * advisoryCount: number, vulnerabilities: Record<string, any> } |
+ * { status: 'error', provider: 'npm', error: string }} AuditResult
  */
 
 // globals
@@ -106,6 +114,8 @@ const packageJson = createPackageJson();
 
 await installPackage();
 
+const audit = flags.noAudit ? undefined : await auditPackage();
+
 calculateNodeModulesSize();
 
 const { exports, version: packageVersion, deps } = await resolvePackageJson();
@@ -136,7 +146,7 @@ await calculateDistSize();
 
 logger.succeed(`Package: ${green(packageName)}@${blue(packageVersion)}`);
 
-exitAndReport(0);
+exitAndReport(audit?.status === "error" ? 1 : 0, true);
 
 // high level functions
 
@@ -211,6 +221,7 @@ function printResults() {
 			})),
 			results: [...results],
 			composition: [...compositionMap.entries()],
+			...(audit ? { audit } : {}),
 		};
 		console.log(JSON.stringify(result, null, 2));
 		return;
@@ -221,6 +232,10 @@ function printResults() {
 	console.log();
 
 	console.log(formatColumns([...results].map(formatResult), options));
+
+	if (audit) {
+		printAudit(audit);
+	}
 
 	if (exportsData.length) {
 		console.log();
@@ -268,6 +283,165 @@ function printResults() {
 		}
 		console.log(formatColumns(tableData, options));
 	}
+}
+
+/** @param {AuditResult} audit */
+function printAudit(audit) {
+	console.log();
+	console.log(underline("Audit:"));
+	if (audit.status === "error") {
+		console.log(yellow(`Unavailable: ${audit.error}`));
+		return;
+	}
+	if (audit.summary.total === 0) {
+		console.log("No known vulnerabilities found.");
+		return;
+	}
+	console.log(
+		`${audit.summary.total} affected packages, ${audit.advisoryCount} unique advisories`,
+	);
+	console.log(
+		auditSeverities
+			.map((severity) => `${audit.summary[severity]} ${severity}`)
+			.join(", "),
+	);
+	console.log(
+		formatColumns(
+			Object.entries(audit.vulnerabilities).map(([name, vulnerability]) => [
+				name,
+				vulnerability.severity,
+				vulnerability.isDirect ? "target" : "dependency",
+			]),
+			[{ paddingRight: 4 }, { paddingRight: 4 }, {}],
+		),
+	);
+	const seen = new Set();
+	for (const vulnerability of Object.values(audit.vulnerabilities)) {
+		for (const advisory of vulnerability.via) {
+			if (typeof advisory === "string" || seen.has(advisory.source)) continue;
+			seen.add(advisory.source);
+			console.log(`${advisory.name}: ${advisory.title}`);
+			console.log(advisory.url);
+		}
+	}
+}
+
+/** @returns {Promise<AuditResult>} */
+async function auditPackage() {
+	logger.start("Auditing package... ");
+	try {
+		const registry = flags.auditRegistry ?? flags.registry;
+		// npm returns a valid report with exit code 1 when vulnerabilities are found.
+		const result = await execFileAsync(
+			"npm",
+			[
+				"audit",
+				"--json",
+				"--omit=dev",
+				"--audit=true",
+				"--package-lock=true",
+				"--ignore-scripts",
+				"--fetch-retries=0",
+				"--fetch-timeout=30000",
+				...(registry !== undefined ? [`--registry=${registry}`] : []),
+			],
+			{ cwd: dirName, timeout: 60000, maxBuffer: 16 * 1024 * 1024 },
+		).then(
+			({ stdout }) => ({ stdout, code: 0 }),
+			(error) => {
+				if (error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER") {
+					throw new Error("npm audit report exceeded the output limit");
+				}
+				if (error.killed)
+					throw new Error("npm audit timed out or was terminated");
+				if (typeof error.code !== "number") {
+					throw new Error(
+						`Could not run npm audit: ${error.code ?? error.message}`,
+					);
+				}
+				return { stdout: error.stdout, code: error.code };
+			},
+		);
+		let report;
+		try {
+			report = JSON.parse(result.stdout);
+		} catch {
+			throw new Error("npm audit returned an invalid JSON report");
+		}
+		if (report?.error) {
+			throw new Error(
+				`npm audit failed: ${report.error.summary || report.error.code || "registry error"}`,
+			);
+		}
+		if (result.code !== 0 && result.code !== 1) {
+			throw new Error(`npm audit failed with exit code ${result.code}`);
+		}
+		return parseAuditReport(report);
+	} catch (/** @type {any} */ error) {
+		return { status: "error", provider: "npm", error: error.message };
+	}
+}
+
+/**
+ * @param {any} report
+ * @returns {AuditResult}
+ */
+function parseAuditReport(report) {
+	const invalid = () =>
+		new Error("npm audit returned an invalid or unsupported report");
+	if (
+		report?.auditReportVersion !== 2 ||
+		!report.vulnerabilities ||
+		typeof report.vulnerabilities !== "object" ||
+		Array.isArray(report.vulnerabilities)
+	)
+		throw invalid();
+
+	/** @type {Record<string, number>} */
+	const summary = Object.fromEntries(
+		[...auditSeverities, "total"].map((key) => [key, 0]),
+	);
+	const advisories = new Set();
+	for (const [name, vulnerability] of Object.entries(report.vulnerabilities)) {
+		if (
+			!vulnerability ||
+			vulnerability.name !== name ||
+			!auditSeverities.includes(vulnerability.severity) ||
+			typeof vulnerability.isDirect !== "boolean" ||
+			!Array.isArray(vulnerability.via) ||
+			vulnerability.via.length === 0
+		)
+			throw invalid();
+		summary[vulnerability.severity]++;
+		summary.total++;
+		for (const advisory of vulnerability.via) {
+			if (typeof advisory === "string") {
+				if (!Object.hasOwn(report.vulnerabilities, advisory)) throw invalid();
+				continue;
+			}
+			if (
+				!advisory ||
+				!Number.isInteger(advisory.source) ||
+				typeof advisory.name !== "string" ||
+				typeof advisory.title !== "string" ||
+				typeof advisory.url !== "string" ||
+				!auditSeverities.includes(advisory.severity)
+			)
+				throw invalid();
+			advisories.add(advisory.source);
+		}
+	}
+	for (const key of Object.keys(summary)) {
+		if (report.metadata?.vulnerabilities?.[key] !== summary[key])
+			throw invalid();
+	}
+	return {
+		status: "complete",
+		provider: "npm",
+		summary,
+		advisoryCount: advisories.size,
+		vulnerabilities: report.vulnerabilities,
+	};
 }
 
 function calculateDistSize() {
@@ -624,6 +798,7 @@ function installPackage() {
 				"--no-fund",
 				"--no-update-notifier",
 				"--no-progress",
+				...(flags.noAudit ? [] : ["--package-lock=true"]),
 				...(flags.enableScripts ? [] : ["--ignore-scripts"]),
 				...(flags.registry ? [`--registry=${flags.registry}`] : []),
 			],
@@ -663,7 +838,17 @@ async function getCliArgs() {
 				registry: {
 					type: "string",
 					short: "r",
-					description: "The npm registry to use when installing the package",
+					description:
+						"The npm registry to use when installing and auditing the package",
+				},
+				auditRegistry: {
+					type: "string",
+					description: "Override the npm registry for auditing only",
+				},
+				noAudit: {
+					type: "boolean",
+					description: "Do not audit the package for known vulnerabilities",
+					default: false,
 				},
 				export: {
 					type: "string",
@@ -768,12 +953,13 @@ function validateExports(exports) {
 
 /**
  * @param {number} code
+ * @param {boolean} [report]
  * @returns {Promise<never>}
  */
-async function exitAndReport(code) {
+async function exitAndReport(code, report = code === 0) {
 	try {
 		await Promise.all(deferred);
-		if (code === 0) {
+		if (report) {
 			printResults();
 		}
 	} finally {
