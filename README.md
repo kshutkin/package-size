@@ -1,6 +1,7 @@
 # Package Size (pkgsz)
 
 [![npm version](https://img.shields.io/npm/v/pkgsz.svg?style=flat-square)](https://www.npmjs.com/package/pkgsz)
+[![Branch coverage](https://raw.githubusercontent.com/kshutkin/package-size/coverage/badge.svg)](https://github.com/kshutkin/package-size/tree/coverage/coverage)
 
 Get the size of an npm package.
 

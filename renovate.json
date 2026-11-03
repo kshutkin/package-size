@@ -1,6 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
+  "extends": ["config:recommended"],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Keep Node declarations on the existing Node 26 baseline",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "26.x",
+      "rangeStrategy": "update-lockfile"
+    },
+    {
+      "description": "Update release and lint tooling automatically only for security fixes",
+      "matchPackageNames": ["@changesets/**", "@biomejs/biome"],
+      "enabled": false
+    }
   ]
 }
