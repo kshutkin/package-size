@@ -1,5 +1,11 @@
 # pkgsz
 
+## 0.16.2
+
+### Patch Changes
+
+- 93ddeec: Update pkgprn to 0.12.0 for package pruning and size measurement.
+
 ## 0.16.1
 
 ### Patch Changes
