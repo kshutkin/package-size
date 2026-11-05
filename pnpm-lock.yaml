@@ -13,7 +13,7 @@ importers:
         version: 1.1.2
       '@niceties/draftlog-appender':
         specifier: ^2.1.1
-        version: 2.1.1(@niceties/logger@2.1.1)
+        version: 2.2.0(@niceties/logger@2.1.1)
       '@niceties/logger':
         specifier: ^2.1.1
         version: 2.1.1
@@ -239,14 +239,14 @@ packages:
     resolution: {integrity: sha512-4SZgmseZqfGAIrcXmfVes+Uj51KMUQNZ3X31faRB8g2tyebDzW+zlkeg1qmhilrgJOi3nm6EOMlkfJVrgiBzZg==}
     engines: {node: '>=15'}
 
-  '@niceties/draftlog-appender@2.1.1':
-    resolution: {integrity: sha512-VmOtJrvo/LCQ0WNUoCkeIVIr+NlWfSCYeBL7lNnyHf3qETRva3eAhHsZhpnt0XWvby/K09aWk9k2AO+4UFzHLw==}
+  '@niceties/draftlog-appender@2.2.0':
+    resolution: {integrity: sha512-x/tzTmBoGAGpxd69DHjAS3OTO55BlLTHNDqK7K5m0+HkkNnIBLZiBfj/gAwQVm/+fEPaDMpXg3wQCMDMKfz17g==}
     engines: {node: '>=15'}
     peerDependencies:
       '@niceties/logger': ^2.1.1
 
-  '@niceties/draftlog@1.0.1':
-    resolution: {integrity: sha512-JOtaWqTCTjB3DVErWgwwVNO+mnbNRCP4QoVm+0/Z/2S9d5CslX0mupfk/9/4pSw+9Pl3bGjgiOyUnXkBW0qbLQ==}
+  '@niceties/draftlog@1.1.1':
+    resolution: {integrity: sha512-H1NTRRZz7enmFBOElBRvypd7clA8ImsGv9bA2EJvvG+tANUmcDHGBT0e4S0nHPuf7ZKCU8EvEX1B/nNSzz0PVQ==}
     engines: {node: '>=15'}
 
   '@niceties/logger@2.1.1':
@@ -1328,14 +1328,15 @@ snapshots:
 
   '@niceties/ansi@1.1.2': {}
 
-  '@niceties/draftlog-appender@2.1.1(@niceties/logger@2.1.1)':
+  '@niceties/draftlog-appender@2.2.0(@niceties/logger@2.1.1)':
     dependencies:
-      '@niceties/draftlog': 1.0.1
+      '@niceties/draftlog': 1.1.1
       '@niceties/logger': 2.1.1
       '@slimlib/list': 2.0.2
 
-  '@niceties/draftlog@1.0.1':
+  '@niceties/draftlog@1.1.1':
     dependencies:
+      ansi-regex: 6.4.0
       string-width: 8.3.0
 
   '@niceties/logger@2.1.1':
@@ -1864,7 +1865,7 @@ snapshots:
   pkgbld@2.1.0:
     dependencies:
       '@niceties/ansi': 1.1.2
-      '@niceties/draftlog-appender': 2.1.1(@niceties/logger@2.1.1)
+      '@niceties/draftlog-appender': 2.2.0(@niceties/logger@2.1.1)
       '@niceties/logger': 2.1.1
       '@niceties/node-parseargs-plus': 0.6.0
       '@rollup-extras/plugin-binify': 2.0.1(rollup@4.65.0)
