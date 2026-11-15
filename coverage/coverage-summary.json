@@ -1,0 +1,3 @@
+{"total": {"lines":{"total":1497,"covered":1482,"skipped":0,"pct":98.99},"statements":{"total":1497,"covered":1482,"skipped":0,"pct":98.99},"functions":{"total":50,"covered":49,"skipped":0,"pct":98},"branches":{"total":412,"covered":390,"skipped":0,"pct":94.66},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
+,"/home/runner/work/package-size/package-size/index.js": {"lines":{"total":1497,"covered":1482,"skipped":0,"pct":98.99},"functions":{"total":50,"covered":49,"skipped":0,"pct":98},"statements":{"total":1497,"covered":1482,"skipped":0,"pct":98.99},"branches":{"total":412,"covered":390,"skipped":0,"pct":94.66}}
+}
