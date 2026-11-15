@@ -1,5 +1,17 @@
 # pkgsz
 
+## 0.17.0
+
+### Minor Changes
+
+- bd11c6d: Verify npm registry signatures and provenance attestations by default. Report verified counts and invalid packages in terminal and JSON output, with `--no-verify` to disable verification.
+
+### Patch Changes
+
+- b7cde01: Update runtime dependencies to their latest releases, including pkgbld 2.2.0, pkgprn 0.12.1, and the niceties logging, ANSI, and argument parsing packages.
+  
+  Preserve composition reporting with newer source-map consumers by allowing valid open-ended mapping spans during source-map exploration.
+
 ## 0.16.2
 
 ### Patch Changes
