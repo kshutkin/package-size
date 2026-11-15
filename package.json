@@ -5,6 +5,10 @@
 	"description": "Get the size of an npm package",
 	"license": "MIT",
 	"author": "Konstantin Shutkin",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kshutkin/package-size.git"
+	},
 	"keywords": [
 		"npm",
 		"package",
