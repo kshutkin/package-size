@@ -86,6 +86,13 @@ const auditColors = {
  * { status: 'error', provider: 'npm', error: string }} AuditResult
  */
 
+/**
+ * @typedef {{ verified: number, invalid: string[] }} VerificationCounts
+ * @typedef {{ status: 'complete', provider: 'npm', signatures: VerificationCounts,
+ * attestations: VerificationCounts } |
+ * { status: 'error', provider: 'npm', error: string }} VerificationResult
+ */
+
 // globals
 const logger = createLogger();
 
@@ -131,6 +138,7 @@ const packageJson = createPackageJson();
 await installPackage();
 
 const audit = flags.noAudit ? undefined : await auditPackage();
+const verification = flags.noVerify ? undefined : await verifyPackage();
 
 calculateNodeModulesSize();
 
@@ -162,7 +170,16 @@ await calculateDistSize();
 
 logger.succeed(`Package: ${green(packageName)}@${blue(packageVersion)}`);
 
-exitAndReport(audit?.status === "error" ? 1 : 0, true);
+exitAndReport(
+	audit?.status === "error" ||
+		verification?.status === "error" ||
+		(verification?.status === "complete" &&
+			(verification.signatures.invalid.length ||
+				verification.attestations.invalid.length))
+		? 1
+		: 0,
+	true,
+);
 
 // high level functions
 
@@ -247,6 +264,7 @@ function printResults() {
 			results: [...results],
 			composition: [...compositionMap.entries()],
 			...(auditOutput ? { audit: auditOutput } : {}),
+			...(verification ? { verification } : {}),
 		};
 		console.log(JSON.stringify(result, null, 2));
 		return;
@@ -260,6 +278,9 @@ function printResults() {
 
 	if (audit) {
 		printAudit(audit);
+	}
+	if (verification) {
+		printVerification(verification);
 	}
 
 	if (exportsData.length) {
@@ -361,6 +382,153 @@ function printAudit(audit) {
 			console.log(advisory.url);
 		}
 	}
+}
+
+/** @param {VerificationResult} verification */
+function printVerification(verification) {
+	console.log();
+	console.log(bold("Signatures and attestations:"));
+	if (verification.status === "error") {
+		console.log(yellow(`Unavailable: ${verification.error}`));
+		return;
+	}
+	const groups = [
+		{ label: "Registry signatures", kind: "registry signature", counts: verification.signatures },
+		{ label: "Attestations", kind: "attestation", counts: verification.attestations },
+	];
+	console.log(
+		formatColumns(
+			groups.map(({ label, counts: { verified, invalid } }) => {
+				return [
+					label,
+					(verified ? green : gray)(`${verified} verified`),
+					(invalid.length ? red : gray)(`${invalid.length} invalid`),
+				];
+			}),
+			[{ paddingRight: 4 }, { paddingRight: 4 }, {}],
+		),
+	);
+	for (const { kind, counts } of groups) {
+		for (const pkg of counts.invalid) {
+			console.log(red(`${pkg}: invalid ${kind}`));
+		}
+	}
+}
+
+/** @returns {Promise<VerificationResult>} */
+async function verifyPackage() {
+	logger.start("Verifying signatures and attestations... ");
+	try {
+		// npm's JSON report omits verified signature counts. Use its plain-text
+		// report for both counts, without requiring a second verification run.
+		const result = await execFileAsync(
+			"npm",
+			[
+				"audit",
+				"signatures",
+				"--json=false",
+				"--color=false",
+				"--omit=dev",
+				"--include-attestations=false",
+				"--package-lock=true",
+				"--ignore-scripts",
+				"--fetch-retries=0",
+				"--fetch-timeout=30000",
+				...(flags.registry !== undefined
+					? [`--registry=${flags.registry}`]
+					: []),
+			],
+			{ cwd: dirName, timeout: 60000, maxBuffer: 16 * 1024 * 1024 },
+		).then(
+			({ stdout }) => ({ stdout, code: 0 }),
+			(error) => {
+				if (error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER")
+					throw new Error(
+						"npm signature verification report exceeded the output limit",
+					);
+				if (error.killed)
+					throw new Error(
+						"npm signature verification timed out or was terminated",
+					);
+				if (typeof error.code !== "number")
+					throw new Error(
+						`Could not run npm signature verification: ${error.code ?? error.message}`,
+					);
+				if (!error.stdout?.trim().startsWith("audited ")) {
+					const detail = stripAnsi(error.stderr || error.stdout || "").trim().slice(0, 2000);
+					throw new Error(`npm signature verification failed: ${detail || `exit code ${error.code}`}`);
+				}
+				return { stdout: error.stdout, code: error.code };
+			},
+		);
+		return parseVerificationReport(result.stdout, result.code);
+	} catch (/** @type {any} */ error) {
+		return { status: "error", provider: "npm", error: error.message };
+	}
+}
+
+/**
+ * @param {string} output
+ * @param {number} code
+ * @returns {VerificationResult}
+ */
+function parseVerificationReport(output, code) {
+	const unsupported = () =>
+		new Error(
+			"npm signature verification failed or returned an unsupported report",
+		);
+	const lines = output.trim().split(/\r?\n/);
+	if (!/^audited \d+ packages? in \d+s$/.test(lines.shift() ?? ""))
+		throw unsupported();
+	const signatures = { verified: 0, invalid: /** @type {string[]} */ ([]) };
+	const attestations = { verified: 0, invalid: /** @type {string[]} */ ([]) };
+	let missing = 0;
+	const seen = new Set();
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (
+			!line ||
+			line ===
+				"(use --json --include-attestations to view attestation details)" ||
+			/^Someone might have tampered with (?:this package|these packages) since (?:it was|they were) published on the registry!$/.test(
+				line,
+			)
+		)
+			continue;
+		const match =
+			/^(\d+) packages? (?:has|have) (?:(?:a|an) )?(verified|invalid|missing) (registry signatures?|attestations?)(?::| but the registry is providing signing keys:)?$/.exec(
+				line,
+			);
+		if (!match) throw unsupported();
+		const [, countText, status, kind] = match;
+		const count = Number(countText);
+		const type = kind.startsWith("registry") ? "signatures" : "attestations";
+		const key = `${status}:${type}`;
+		if (
+			!Number.isSafeInteger(count) ||
+			count <= 0 ||
+			seen.has(key) ||
+			(status === "missing" && type !== "signatures")
+		)
+			throw unsupported();
+		seen.add(key);
+		const counts = type === "signatures" ? signatures : attestations;
+		if (status === "verified") {
+			counts.verified = count;
+			continue;
+		}
+		if (status === "missing") missing = count;
+		for (let j = 0; j < count; j++) {
+			while (lines[i + 1] === "") i++;
+			const pkg = /^(\S+@\S+) \(https?:\/\/[^\s]+\)$/.exec(lines[++i] ?? "");
+			if (!pkg) throw unsupported();
+			if (status === "invalid") counts.invalid.push(pkg[1]);
+		}
+	}
+	const hasFailures =
+		missing + signatures.invalid.length + attestations.invalid.length > 0;
+	if (!seen.size || code !== (hasFailures ? 1 : 0)) throw unsupported();
+	return { status: "complete", provider: "npm", signatures, attestations };
 }
 
 /** @returns {Promise<AuditResult>} */
@@ -835,7 +1003,7 @@ function installPackage() {
 				"--no-fund",
 				"--no-update-notifier",
 				"--no-progress",
-				...(flags.noAudit ? [] : ["--package-lock=true"]),
+				...(flags.noAudit && flags.noVerify ? [] : ["--package-lock=true"]),
 				...(flags.enableScripts ? [] : ["--ignore-scripts"]),
 				...(flags.registry ? [`--registry=${flags.registry}`] : []),
 			],
@@ -876,7 +1044,7 @@ async function getCliArgs() {
 					type: "string",
 					short: "r",
 					description:
-						"The npm registry to use when installing and auditing the package",
+						"The npm registry to use when installing, auditing, and verifying the package",
 				},
 				auditRegistry: {
 					type: "string",
@@ -890,6 +1058,12 @@ async function getCliArgs() {
 				noAudit: {
 					type: "boolean",
 					description: "Do not audit the package for known vulnerabilities",
+					default: false,
+				},
+				noVerify: {
+					type: "boolean",
+					description:
+						"Do not verify registry signatures and provenance attestations",
 					default: false,
 				},
 				export: {

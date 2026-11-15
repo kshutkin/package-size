@@ -26,6 +26,7 @@ npx pkgsz [flags] <package name> [version]
 - Supports subpath exports
 - Supports custom registries (without authentication)
 - Audits the installed package and its production dependencies for known vulnerabilities using npm
+- Verifies npm registry signatures and provenance attestations by default
 - Interactive mode
 
 ## Limitations
@@ -58,7 +59,7 @@ Reexport given subpath from the package (default: ["."])
 
 ### -r, --registry
 
-The npm registry to use when installing and auditing the package
+The npm registry to use when installing, auditing, and verifying the package
 
 ### --audit-registry
 
@@ -105,6 +106,48 @@ severity and a unique `advisoryCount`. With `--audit=full`, the object also incl
 npm's `vulnerabilities` details (including advisory links, affected ranges,
 dependency paths, and available fixes). JSON output contains no color codes.
 Failed audits contain an `error` message. With `--no-audit`, the `audit` field is omitted.
+
+### --no-verify
+
+Disable registry signature and provenance attestation verification (enabled by
+default). Verification is independent of vulnerability auditing: `--no-audit`
+leaves verification enabled, and `--no-verify` leaves auditing enabled.
+
+pkgsz runs `npm audit signatures` against the installed package and its production
+dependency tree before building. npm cryptographically verifies available
+registry signatures and attestations. Verification uses the installation registry
+(`--registry` or npm's configured registries); `--audit-registry` only affects
+vulnerability auditing. npm may also contact Sigstore to obtain trusted verification
+material. Keep npm current to support the latest attestation formats and trust roots.
+
+The terminal reports verified package counts and lists invalid packages separately
+for registry signatures and attestations. Missing signatures or provenance are not
+reported as invalid. Zero verified attestations means none were verified; it does
+not establish provenance for the package. Counts follow npm's report: a package
+whose attestation fails may not be counted among verified registry signatures.
+
+Invalid signatures or attestations cause exit code 1. Verification failures
+(including unsupported registries, network errors, or an unsupported npm report)
+are shown as unavailable and also cause exit code 1. Size results and cleanup
+still run in both cases. Missing signatures or attestations alone do not cause
+exit code 1.
+
+With `--json`, a `verification` object contains `status` (`complete` or `error`)
+and `provider` (`npm`). Completed verification includes `signatures` and
+`attestations`, each with a `verified` package count and an `invalid` array of
+`name@version` strings. For example:
+
+```json
+{
+  "status": "complete",
+  "provider": "npm",
+  "signatures": { "verified": 5, "invalid": [] },
+  "attestations": { "verified": 2, "invalid": [] }
+}
+```
+
+Failed verification contains an `error` message. With `--no-verify`, the
+`verification` field is omitted.
 
 ### -s, --enable-scripts
 

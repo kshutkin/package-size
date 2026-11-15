@@ -88,7 +88,7 @@ async function fixture(t, { withDependency = false } = {}) {
         root, packages, install,
         async run(args = ['-jg'], env = {}) {
             try {
-                const result = await run(process.execPath, [cli, target, `file:${packages.at(-1).tarballFile}`, ...args], {
+                const result = await run(process.execPath, [cli, target, `file:${packages.at(-1).tarballFile}`, '--no-verify', ...args], {
                     timeout: 30000, maxBuffer: 32 * 1024 * 1024,
                     env: {
                         ...process.env, CI: 'true', NO_COLOR: 'true',

@@ -20,7 +20,7 @@ const args = parseArgs({ options: {
 }}).values;
 
 // dummy run to make sure the packages are installed
-await exec('node ./index.js @tstpkgs/basic-esm --no-audit');
+await exec('node ./index.js @tstpkgs/basic-esm --no-audit --no-verify');
 
 for (const [suiteName, suiteTestCases] of Object.entries(tests)) {
     describe(suiteName, () => {

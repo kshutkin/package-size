@@ -33,9 +33,9 @@ async function createFixture(t, packageJson, files) {
         root,
         tarball,
         async run(args = [], env = {}) {
-            // Size regressions are independent of the live advisory database.
+            // Size regressions are independent of live security services.
             return execFileAsync(process.execPath, [
-                cli, packageJson.name, `file:${tarball}`, '--no-audit', ...args,
+                cli, packageJson.name, `file:${tarball}`, '--no-audit', '--no-verify', ...args,
             ], { env: { ...process.env, TMPDIR: root, TMP: root, TEMP: root, ...env } });
         },
         async buildDir() {
