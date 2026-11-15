@@ -701,7 +701,10 @@ async function exploreSourcemaps() {
 	return wrapWithLogger(async () => {
 		const result = await execEx(
 			process.execPath,
-			[smeBin, "dist/**/*.mjs", "--json"],
+			// Newer source-map consumers use Infinity for spans ending at EOL.
+			// Explorer's border check rejects those valid spans; substring sizing
+			// already clamps them to the actual generated line length.
+			[smeBin, "dist/**/*.mjs", "--json", "--no-border-checks"],
 			{ cwd: dirName },
 		);
 		const json = JSON.parse(result);

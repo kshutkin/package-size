@@ -33,18 +33,18 @@
 		"node": "^22.22.2 || ^24.15.0 || >=26.0.0"
 	},
 	"dependencies": {
-		"@niceties/ansi": "^1.1.2",
-		"@niceties/draftlog-appender": "^2.1.1",
+		"@niceties/ansi": "^1.2.0",
+		"@niceties/draftlog-appender": "^2.2.0",
 		"@niceties/logger": "^2.1.1",
-		"@niceties/node-parseargs-plus": "^0.6.0",
-		"pkgbld": "^2.1.0",
-		"pkgprn": "^0.12.0",
+		"@niceties/node-parseargs-plus": "^0.6.1",
+		"pkgbld": "^2.2.0",
+		"pkgprn": "^0.12.1",
 		"prompts": "2.4.2",
 		"source-map": "0.8.0",
 		"source-map-explorer": "2.5.3"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.6.4",
+		"@biomejs/biome": "2.6.8",
 		"@changesets/cli": "3.0.3",
 		"@types/node": "26.x",
 		"c8": "^12.0.0"
